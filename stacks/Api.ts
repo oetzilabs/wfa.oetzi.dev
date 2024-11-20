@@ -1,26 +1,20 @@
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
 import { allSecrets } from "./Secrets";
+import { mainStorage } from "./Storage";
 
-// import { storage } from "./Storage";
+const link = [...allSecrets, auth, mainStorage];
 
 export const api = new sst.aws.ApiGatewayV2("Api", {
   domain: {
-    name: `api.${domain}`,
+    name: $interpolate`api.${domain}`,
     dns: cf,
   },
   cors: {
-    allowOrigins: ["*", "http://localhost:3000"],
+    allowOrigins: ["*"],
   },
+  link,
 });
-
-const link = [
-  // ws,
-  // notifications,
-  // storage,
-  auth,
-  ...allSecrets,
-];
 
 const copyFiles = [
   {
@@ -29,21 +23,8 @@ const copyFiles = [
   },
 ];
 
-api.route("GET /healthcheck", {
-  handler: "packages/functions/src/healthcheck.main",
-  link,
-  copyFiles,
-});
-
 api.route("GET /session", {
   handler: "packages/functions/src/session.handler",
   link,
   copyFiles,
-});
-
-api.route("POST /user/report/create", {
-  handler: "packages/functions/src/user.createReport",
-  link,
-  copyFiles,
-  timeout: "20 seconds",
 });

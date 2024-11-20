@@ -24,7 +24,7 @@ export default $config({
     const auth = await import("./stacks/Auth");
     const api = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
-    const { migrate, generate, studio, seed } = await import("./stacks/Database");
+    const { migration: migrate, generate, studio, seed } = await import("./stacks/Database");
 
     return {
       mainStorageName: storage.name,
