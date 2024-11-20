@@ -18,8 +18,8 @@ export default $config({
   async run() {
     await import("./stacks/Secrets");
     await import("./stacks/Domain");
-    const { mainStorage: storage } = await import("./stacks/Storage");
-    // const notification = await import("./stacks/Notification");
+    const { mainAWSStorage, mainCloudflareStorage } = await import("./stacks/Storage");
+
     const { realtime, realtimeSubscriber } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
     const { hono_open_api } = await import("./stacks/Api");
@@ -27,9 +27,12 @@ export default $config({
     const { migration: migrate, generate, studio, seed } = await import("./stacks/Database");
 
     return {
-      mainStorageName: storage.name,
-      mainStorageArn: storage.arn,
-      mainStorageUrn: storage.urn,
+      mainStorageName: mainAWSStorage.name,
+      mainStorageArn: mainAWSStorage.arn,
+      mainStorageUrn: mainAWSStorage.urn,
+
+      mainCloudflareStorageName: mainCloudflareStorage.name,
+      mainCloudflareStorageUrn: mainCloudflareStorage.urn,
 
       realtimeUrn: realtime.urn,
       realtimeSubscriber: realtimeSubscriber.urn,

@@ -1,6 +1,4 @@
-import { env } from "node:process";
 import { Users } from "@wfa/core/src/entities/users";
-import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
 import { auth } from "sst/auth";
 import { CodeAdapter } from "sst/auth/adapter/code";
@@ -9,7 +7,6 @@ import { GoogleAdapter } from "sst/auth/adapter/google";
 const session = auth.sessions<{
   user: {
     id: string;
-    email: string;
   };
   app: {
     id: string;
@@ -83,7 +80,6 @@ const authorizer = () =>
               type: "user",
               properties: {
                 id: user_!.id,
-                email: user_!.email,
               },
             });
           } else if (input.provider === "code") {

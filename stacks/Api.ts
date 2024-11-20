@@ -1,9 +1,9 @@
 import { auth } from "./Auth";
-import { cf, domain } from "./Domain";
+import { domain } from "./Domain";
 import { allSecrets } from "./Secrets";
-import { mainStorage } from "./Storage";
+import { mainAWSStorage, mainCloudflareStorage } from "./Storage";
 
-const link = [...allSecrets, auth, mainStorage];
+const link = [...allSecrets, auth, mainAWSStorage, mainCloudflareStorage];
 // const copyFiles = [
 //   {
 //     from: "packages/core/src/drizzle",
