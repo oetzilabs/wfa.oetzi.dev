@@ -32,6 +32,17 @@ const main_route = createRoute({
       description: "Retrieve an application",
     },
     404: {
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              error: z.string().openapi({
+                example: "Application not found",
+              }),
+            })
+            .openapi("Error"),
+        },
+      },
       description: "Application not found",
     },
   },
@@ -44,8 +55,11 @@ export const registerRoute = (app: OpenAPIHono) => {
     if (!app) {
       return c.json({ error: "Application not found" }, 404);
     }
-    return c.json({
-      id: app.id,
-    });
+    return c.json(
+      {
+        id: app.id,
+      },
+      200,
+    );
   });
 };
