@@ -1,5 +1,4 @@
 import { relations } from "drizzle-orm";
-import { boolean, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { schema } from "./utils";
 
@@ -28,14 +27,14 @@ export const mailbouncer_type = schema.enum("mailbouncer_type", [
 
 export const mailbouncer = commonTable(
   "mailbouncer",
-  {
-    email: text("email").notNull(),
-    enabled: boolean("enabled").notNull().default(true),
+  (t) => ({
+    email: t.text("email").notNull(),
+    enabled: t.boolean("enabled").notNull().default(true),
     type: mailbouncer_type("type").notNull(),
-    t: text("t").notNull(),
-    st: text("st").notNull(),
-    locked: boolean("locked").notNull().default(false),
-  },
+    t: t.text("t").notNull(),
+    st: t.text("st").notNull(),
+    locked: t.boolean("locked").notNull().default(false),
+  }),
   "mailbouncer",
 );
 

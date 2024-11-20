@@ -1,5 +1,4 @@
 import { relations } from "drizzle-orm";
-import { boolean, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { schema } from "./utils";
 
@@ -8,15 +7,15 @@ export const mailcomplaint_type = schema.enum("mailcomplaint_type", ["Spam", "Ab
 
 export const mailcomplaint = commonTable(
   "mailcomplaint",
-  {
-    email: text("email").notNull(),
-    enabled: boolean("enabled").notNull().default(true),
+  (t) => ({
+    email: t.text("email").notNull(),
+    enabled: t.boolean("enabled").notNull().default(true),
     type: mailcomplaint_type("type").notNull(),
-    t: text("t").notNull(),
-    complaintTimestamp: timestamp("complaintTimestamp", { mode: "date" }).notNull(),
-    feedbackId: text("feedbackId").notNull(),
-    locked: boolean("locked").notNull().default(false),
-  },
+    t: t.text("t").notNull(),
+    complaintTimestamp: t.timestamp("complaintTimestamp", { mode: "date" }).notNull(),
+    feedbackId: t.text("feedbackId").notNull(),
+    locked: t.boolean("locked").notNull().default(false),
+  }),
   "mailcomplaint",
 );
 

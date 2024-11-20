@@ -5,12 +5,13 @@ import { users } from "./users";
 
 export const customer_payments = commonTable(
   "customer_payments",
-  {
-    owner_id: text("owner_id")
+  (t) => ({
+    owner_id: t
+      .text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    charge: decimal("charge", { scale: 2 }).notNull().default("0.0"),
-  },
+    charge: t.numeric("charge", { scale: 2 }).notNull().default("0.0"),
+  }),
   "customer_payment",
 );
 

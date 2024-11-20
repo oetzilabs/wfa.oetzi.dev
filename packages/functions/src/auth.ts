@@ -2,79 +2,114 @@ import { env } from "node:process";
 import { Users } from "@wfa/core/src/entities/users";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
-import { GoogleAdapter } from "sst/auth/adapter";
-import { auth } from "sst/aws/auth";
-import { sessions } from "./utils";
+import { auth } from "sst/auth";
+import { CodeAdapter } from "sst/auth/adapter/code";
+import { GoogleAdapter } from "sst/auth/adapter/google";
 
-export const handler = auth.authorizer({
-  session: sessions,
-  providers: {
-    google: GoogleAdapter({
-      clientID: Resource.GoogleClientId.value,
-      mode: "oidc",
-    }),
-  },
-  callbacks: {
-    error: async (e, req) => {
-      console.log("upps error: ", e);
-      const response = new Response(e.message, {
-        status: StatusCodes.BAD_REQUEST,
-        headers: {
-          Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
-        },
-      });
-      return response;
-    },
-    auth: {
-      async allowClient(clientID, redirect) {
-        console.log(clientID, redirect);
-        const clients = ["google"];
-        if (!clients.includes(clientID)) {
-          return false;
-        }
+const session = auth.sessions<{
+  user: {
+    id: string;
+    email: string;
+  };
+  app: {
+    id: string;
+    token: string;
+  };
+}>();
 
-        return true;
-      },
-      async error(error, request) {
-        console.log("auth-error", error);
-        const response = new Response(error.message, {
-          status: StatusCodes.BAD_REQUEST,
-          headers: {
-            Location: env.AUTH_FRONTEND_URL + "/auth/error?error=unknown",
-          },
-        });
-        return response;
-      },
-      async success(response, input) {
-        if (input.provider !== "google") {
-          throw new Error("Unknown provider");
-        }
-        const claims = input.tokenset.claims();
-        const email = claims.email;
-        const name = claims.preferred_username ?? claims.name;
-        const image = claims.picture ?? "/assets/images/avatar.png";
-        if (!email || !name) {
-          console.error("No email or name found in tokenset", input.tokenset);
-          return response.session({
-            type: "public",
-            properties: {},
+const authorizer = () =>
+  auth.authorizer({
+    providers: {
+      gmail: GoogleAdapter({
+        clientID: Resource.GoogleClientId.value,
+        mode: "oidc",
+      }),
+      code: CodeAdapter({
+        length: 32,
+        onCodeInvalid: async (code, claims, req) => {
+          return new Response("Code is invalid " + code, {
+            status: 200,
+            headers: { "Content-Type": "text/plain" },
           });
-        }
+        },
+        onCodeRequest: async (code, claims, req) => {
+          const searchParams = new URLSearchParams(req.url);
+          const redirectUri = searchParams.get("redirect_uri")?.replace(process.env.AUTH_FRONTEND_URL as string, "");
 
-        let user_ = await Users.findByEmail(email);
+          console.log("Code request", code, claims, redirectUri);
 
-        if (!user_) {
-          user_ = await Users.create({ email, name, image })!;
-        }
+          return new Response(code, {
+            status: 302,
+            headers: {
+              Location:
+                process.env.AUTH_FRONTEND_URL +
+                "/verify?" +
+                new URLSearchParams({
+                  email: claims.email,
+                  redirect: redirectUri ?? "/workspace",
+                }).toString(),
+            },
+          });
+        },
+      }),
+    },
+    session,
+    callbacks: {
+      auth: {
+        async allowClient(cId, redirect, req) {
+          return ["gmail"].includes(cId);
+        },
+        async success(ctx, input, req) {
+          if (input.provider === "gmail") {
+            const claims = input.tokenset.claims();
+            const email = claims.email;
+            const name = claims.preferred_username ?? claims.name;
+            const image = claims.picture ?? "/assets/images/avatar.png";
+            if (!email || !name) {
+              console.error("No email or name found in tokenset", input.tokenset);
+              return ctx.session({
+                type: "public",
+                properties: {},
+              });
+            }
 
-        return response.session({
-          type: "user",
-          properties: {
-            id: user_!.id,
-            email: user_!.email,
-          },
-        });
+            let user_ = await Users.findByEmail(email);
+
+            if (!user_) {
+              user_ = await Users.create({ email, name, image })!;
+            }
+
+            return ctx.session({
+              type: "user",
+              properties: {
+                id: user_!.id,
+                email: user_!.email,
+              },
+            });
+          } else if (input.provider === "code") {
+            // const app = await App.findByCode(input.tokenset.claims().code);
+            // if (!app) throw new Error("No app found");
+            // const token = await App.generateToken(app.id);
+            return ctx.session({
+              type: "app",
+              properties: {
+                id: "",
+                token: "",
+              },
+            });
+          } else {
+            return ctx.session({
+              type: "public",
+              properties: {},
+            });
+          }
+        },
       },
     },
+  });
+
+export default {
+  fetch(event: any, ctx: any) {
+    return authorizer().fetch(event, ctx);
   },
-});
+};

@@ -12,9 +12,9 @@ import {
   string,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { user_role } from "../drizzle/sql/schema";
-import { currency_code, users } from "../drizzle/sql/schemas/users";
+import { users } from "../drizzle/sql/schemas/users";
 import { Validator } from "../validator";
+import { Organizations } from "./organizations";
 
 export module Users {
   export const CreateSchema = strictObject({
@@ -22,18 +22,12 @@ export module Users {
     email: Validator.EmailSchema,
     image: optional(nullable(string())),
     verifiedAt: optional(nullable(date())),
-    role: optional(picklist(user_role.enumValues)),
   });
   export const UpdateSchema = intersect([partial(Users.CreateSchema), strictObject({ id: Validator.Cuid2Schema })]);
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
   export const _with: WithOptions = {
     orgs: {
-      with: {
-        user: true,
-      },
-    },
-    companies: {
       with: {
         user: true,
       },
@@ -94,5 +88,59 @@ export module Users {
       throw isValid.issues;
     }
     return tsx.delete(users).where(eq(users.id, isValid.output)).returning();
+  };
+
+  export const seed = async () => {
+    console.log("Creating admin user and company");
+    const adminUserExists = await Users.findByEmail("admin@wfa.oetzi.dev");
+    if (!adminUserExists) {
+      const adminUser = await Users.create({
+        email: "admin@wfa.oetzi.dev",
+        verifiedAt: new Date(),
+        name: "Admin",
+      });
+      console.log("Admin user created");
+      const adminCompanyExists = await Organizations.findByName("Taxi Kasse");
+
+      if (!adminCompanyExists) {
+        const adminCompany = await Organizations.create({
+          email: "admin@wfa.oetzi.dev",
+          ownerId: adminUser!.id,
+          name: "Taxi Kasse",
+          phoneNumber: "123456789",
+          website: "https://wfa.oetzi.dev",
+          base_charge: 0,
+          distance_charge: 0,
+          time_charge: 0,
+        });
+        console.log("Admin organization created");
+      }
+    }
+
+    console.log("Creating test user and company");
+    const testUserExists = await Users.findByEmail("testuser@wfa.oetzi.dev");
+
+    if (!testUserExists) {
+      const testUser = await Users.create({
+        email: "testuser@wfa.oetzi.dev",
+        verifiedAt: new Date(),
+        name: "Test",
+      });
+      console.log("Test user created");
+      const testCompanyExists = await Organizations.findByName("Test Company");
+      if (!testCompanyExists) {
+        const testCompany = await Organizations.create({
+          email: "testuser@wfa.oetzi.dev",
+          ownerId: testUser!.id,
+          name: "Test Company",
+          phoneNumber: "123456789",
+          website: "https://wfa.oetzi.dev",
+          base_charge: 0,
+          distance_charge: 0,
+          time_charge: 0,
+        });
+        console.log("Test company created");
+      }
+    }
   };
 }

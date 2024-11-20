@@ -1,6 +1,6 @@
 import { setTimeout } from "node:timers/promises";
 import { action, query, redirect } from "@solidjs/router";
-import { Companies } from "@wfa/core/src/entities/companies";
+import { Applications } from "@wfa/core/src/entities/application";
 import { Organizations } from "@wfa/core/src/entities/organizations";
 import { Users } from "@wfa/core/src/entities/users";
 import { getCookie, getEvent } from "vinxi/http";
@@ -33,9 +33,9 @@ export type UserSession = {
   expiresAt: Date | null;
   user: Awaited<ReturnType<typeof Users.findById>> | null;
   organization: Awaited<ReturnType<typeof Organizations.findById>> | null;
-  company: Awaited<ReturnType<typeof Companies.findById>> | null;
-  companies: Awaited<ReturnType<typeof Companies.findByUserId>>;
   organizations: Awaited<ReturnType<typeof Organizations.findByUserId>>;
+  application: Awaited<ReturnType<typeof Applications.findById>> | null;
+  applications: Awaited<ReturnType<typeof Applications.findByUserId>>;
   createdAt: Date | null;
 };
 
@@ -48,8 +48,8 @@ export const getAuthenticatedSession = query(async () => {
     user: null,
     organization: null,
     organizations: [],
-    company: null,
-    companies: [],
+    application: null,
+    applications: [],
     workspace: null,
     createdAt: null,
   } as UserSession;
@@ -69,11 +69,11 @@ export const getAuthenticatedSession = query(async () => {
   userSession.id = session.id;
   userSession.token = session.access_token;
   if (session.organization_id) userSession.organization = await Organizations.findById(session.organization_id);
-  if (session.company_id) userSession.company = await Companies.findById(session.company_id);
+  if (session.application_id) userSession.application = await Applications.findById(session.application_id);
   if (session.userId) {
     userSession.user = await Users.findById(session.userId);
     userSession.organizations = await Organizations.findByUserId(session.userId);
-    userSession.companies = await Companies.findByUserId(session.userId);
+    userSession.applications = await Applications.findByUserId(session.userId);
   }
   if (session.createdAt) userSession.createdAt = session.createdAt;
 
@@ -89,8 +89,8 @@ export const getAuthenticatedAdminSession = query(async () => {
     user: null,
     organization: null,
     organizations: [],
-    company: null,
-    companies: [],
+    application: null,
+    applications: [],
     workspace: null,
     createdAt: null,
   } as UserSession;
@@ -110,11 +110,11 @@ export const getAuthenticatedAdminSession = query(async () => {
   userSession.id = session.id;
   userSession.token = session.access_token;
   if (session.organization_id) userSession.organization = await Organizations.findById(session.organization_id);
-  if (session.company_id) userSession.company = await Companies.findById(session.company_id);
+  if (session.application_id) userSession.application = await Applications.findById(session.application_id);
   if (session.userId) {
     userSession.user = await Users.findById(session.userId);
     userSession.organizations = await Organizations.findByUserId(session.userId);
-    userSession.companies = await Companies.findByUserId(session.userId);
+    userSession.applications = await Applications.findByUserId(session.userId);
   }
   if (session.createdAt) userSession.createdAt = session.createdAt;
 

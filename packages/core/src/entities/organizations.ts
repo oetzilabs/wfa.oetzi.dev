@@ -1,9 +1,9 @@
 import { desc, eq } from "drizzle-orm";
 import {
+  date,
   InferInput,
   intersect,
   nullable,
-  object,
   optional,
   partial,
   pipe,
@@ -53,6 +53,7 @@ export module Organizations {
 
   export const UpdateSchema = intersect([
     partial(Organizations.CreateSchema),
+    strictObject({ deletedAt: optional(nullable(date())) }),
     strictObject({ id: Validator.Cuid2Schema }),
   ]);
 
@@ -103,7 +104,7 @@ export module Organizations {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.organizations.findMany({
-      where: (fields, ops) => ops.eq(fields.ownerId, isValid.output),
+      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
       with: {
         ...Organizations._with,
         employees: {
@@ -117,7 +118,7 @@ export module Organizations {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.organizations.findFirst({
-      where: (fields, ops) => ops.eq(fields.ownerId, isValid.output),
+      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
       orderBy: [desc(organizations.createdAt)],
       with: {
         ...Organizations._with,
@@ -134,9 +135,17 @@ export module Organizations {
     return tsx.update(organizations).set(isValid.output).where(eq(organizations.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
-    return db.delete(organizations).where(eq(organizations.id, isValid.output)).returning();
+    return update({ id, deletedAt: new Date() }, tsx);
+  };
+
+  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return tsx.delete(organizations).where(eq(organizations.id, isValid.output)).returning();
   };
 }

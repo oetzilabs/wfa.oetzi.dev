@@ -1,28 +1,16 @@
 import { relations } from "drizzle-orm";
-import { decimal, text } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
 import { user_organizations } from "./user_organizations";
 import { users } from "./users";
 
 export const organizations = commonTable(
   "organizations",
-  {
-    ownerId: text("user_id").references(() => users.id, { onDelete: "set null" }),
-    name: text("name").notNull(),
-
-    image: text("image").notNull().default("/images/default-organization-profile.png"),
-    banner: text("banner").notNull().default("/images/default-organization-banner.png"),
-
-    phoneNumber: text("phone_number"),
-    website: text("website"),
-    email: text("email").notNull(),
-
-    uid: text("uid").notNull().default(""),
-
-    base_charge: decimal("base_charge", { scale: 2 }).default("0.00"),
-    distance_charge: decimal("distance_charge", { scale: 2 }).default("0.00"),
-    time_charge: decimal("time_charge", { scale: 2 }).default("0.00"),
-  },
+  (t) => ({
+    owner_id: t.text("owner_id").references(() => users.id, { onDelete: "set null" }),
+    name: t.text("name").notNull(),
+    website: t.text("website"),
+    email: t.text("email"),
+  }),
   "org",
 );
 
@@ -31,7 +19,7 @@ export type OrganizationInsert = typeof organizations.$inferInsert;
 
 export const organization_relation = relations(organizations, ({ one, many }) => ({
   owner: one(users, {
-    fields: [organizations.ownerId],
+    fields: [organizations.owner_id],
     references: [users.id],
   }),
   employees: many(user_organizations),

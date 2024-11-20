@@ -1,24 +1,26 @@
 import { relations } from "drizzle-orm";
-import { primaryKey, text } from "drizzle-orm/pg-core";
+import { primaryKey } from "drizzle-orm/pg-core";
 import { system_notifications } from "./system_notifications";
 import { users } from "./users";
 import { schema } from "./utils";
 
 export const user_hidden_system_notifications = schema.table(
   "user_hidden_system_notifications",
-  {
-    user_id: text("user_id")
+  (t) => ({
+    user_id: t
+      .text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    system_notification_id: text("system_notification_id")
+    system_notification_id: t
+      .text("system_notification_id")
       .notNull()
       .references(() => system_notifications.id, {
         onDelete: "cascade",
       }),
-  },
-  (table) => ({
-    pK: primaryKey({ columns: [table.user_id, table.system_notification_id] }),
   }),
+  (table) => [
+    primaryKey({ columns: [table.user_id, table.system_notification_id], name: "user_hidden_system_notification_pk" }),
+  ],
 );
 
 export type UserHiddenSystemNotificationSelect = typeof user_hidden_system_notifications.$inferSelect;

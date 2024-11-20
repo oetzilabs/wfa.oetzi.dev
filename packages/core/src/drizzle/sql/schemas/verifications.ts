@@ -1,7 +1,5 @@
 import { relations } from "drizzle-orm";
-import { decimal, text, timestamp } from "drizzle-orm/pg-core";
 import { commonTable } from "./entity";
-import { rides } from "./rides";
 import { users } from "./users";
 import { schema } from "./utils";
 
@@ -9,13 +7,14 @@ export const verificationStatus = schema.enum("verification_status", ["pending",
 
 export const verifications = commonTable(
   "verifications",
-  {
-    owner_id: text("owner_id")
+  (t) => ({
+    owner_id: t
+      .text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    code: text("code").notNull(),
+    code: t.text("code").notNull(),
     status: verificationStatus("status").notNull().default("pending"),
-  },
+  }),
   "verification",
 );
 

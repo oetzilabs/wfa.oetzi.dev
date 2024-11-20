@@ -1,14 +1,14 @@
 import { api } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
-import { mainEmail } from "./Email";
 import { realtime } from "./Realtime";
 import { allSecrets } from "./Secrets";
+import { mainStorage } from "./Storage";
 
 const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [...allSecrets, api, auth, realtime, mainEmail],
+  link: [...allSecrets, api, auth, realtime, mainStorage],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {

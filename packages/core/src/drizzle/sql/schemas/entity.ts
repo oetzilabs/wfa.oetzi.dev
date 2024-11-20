@@ -1,11 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
 import { BuildExtraConfigColumns, Table } from "drizzle-orm";
 import { PgColumnBuilderBase, PgTableExtraConfig, timestamp, varchar } from "drizzle-orm/pg-core";
+import { PgColumnsBuilders } from "drizzle-orm/pg-core/columns/all";
 import { schema } from "./utils";
 
 export * as Entity from "./entity";
 
-const defaults = (prefix: string) => ({
+const defaults = (t: PgColumnsBuilders, prefix: string) => ({
   id: varchar("id")
     .primaryKey()
     .$defaultFn(() => `${prefix}_${createId()}`),
@@ -31,15 +32,15 @@ export function commonTable<
   TPrefix extends string,
 >(
   name: TTableName,
-  columns: TColumnsMap,
+  columns: (columnTypes: PgColumnsBuilders) => TColumnsMap,
   prefix: TPrefix,
   extraConfig?: (
     self: BuildExtraConfigColumns<TTableName, TColumnsMap & ReturnType<typeof defaults>, "pg">,
-  ) => PgTableExtraConfig,
+  ) => PgTableExtraConfig[],
 ) {
   return schema.table<TTableName, TColumnsMap & ReturnType<typeof defaults>>(
     name,
-    Object.assign(columns, defaults(prefix)),
+    (t: PgColumnsBuilders) => Object.assign(columns(t), defaults(t, prefix)),
     extraConfig,
   );
 }

@@ -1,23 +1,26 @@
 import { relations } from "drizzle-orm";
-import { text } from "drizzle-orm/pg-core";
-import { companies } from "./companies";
+import { primaryKey } from "drizzle-orm/pg-core";
 import { organizations } from "./organizations";
-import { org_role } from "./roles";
 import { users } from "./users";
 import { schema } from "./utils";
 
 export const user_organizations = schema.table(
   "user_organizations",
-  {
-    user_id: text("user_id")
+  (t) => ({
+    user_id: t
+      .text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    organization_id: text("organization_id").references(() => organizations.id, { onDelete: "set null" }),
-    role: org_role("role").default("employee").notNull(),
-  },
-  (table) => ({
-    primarKeys: [table.user_id, table.organization_id],
+    organization_id: t
+      .text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: t.timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
   }),
+  (table) => [primaryKey({ name: "user_organization_pk", columns: [table.user_id, table.organization_id] })],
 );
 
 export type UserOrganizationSelect = typeof user_organizations.$inferSelect;
