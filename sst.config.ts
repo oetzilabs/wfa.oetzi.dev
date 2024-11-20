@@ -22,7 +22,7 @@ export default $config({
     // const notification = await import("./stacks/Notification");
     const { realtime, realtimeSubscriber } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
-    const api = await import("./stacks/Api");
+    const { hono_open_api } = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
     const { migration: migrate, generate, studio, seed } = await import("./stacks/Database");
 
@@ -30,19 +30,17 @@ export default $config({
       mainStorageName: storage.name,
       mainStorageArn: storage.arn,
       mainStorageUrn: storage.urn,
-      // notificationArn: notification.notifications.arn,
-      // notificationUrn: notification.notifications.urn,
-      // websocket: websocket.ws.url,
+
       realtimeUrn: realtime.urn,
       realtimeSubscriber: realtimeSubscriber.urn,
 
-      migrateUrn: migrate.urn,
+      migrationUrn: migrate.urn,
       generateUrn: generate.urn,
       seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
 
       authUrl: auth.auth.authenticator.url,
-      api: api.hono_api.url,
+      open_api: hono_open_api.url,
 
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
     };

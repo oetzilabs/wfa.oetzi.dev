@@ -11,7 +11,7 @@ const link = [...allSecrets, auth, mainStorage];
 //   },
 // ];
 
-export const hono_api = new sst.cloudflare.Worker("HonoApi", {
+export const hono_open_api = new sst.cloudflare.Worker("HonoOpenApi", {
   domain: $interpolate`api.${domain}`,
   handler: "packages/functions/src/open_api.handler",
   link,

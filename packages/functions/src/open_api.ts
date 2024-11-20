@@ -28,7 +28,7 @@ const UserSchema = z
   })
   .openapi("User");
 
-const route = createRoute({
+const users_route = createRoute({
   method: "get",
   path: "/users/{id}",
   request: {
@@ -48,9 +48,10 @@ const route = createRoute({
     },
   },
 });
+
 const app = new OpenAPIHono();
 
-app.openapi(route, async (c) => {
+app.openapi(users_route, async (c) => {
   const { id } = c.req.valid("param");
   const user = await Users.findById(id);
   if (!user) {
