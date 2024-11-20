@@ -1,0 +1,33 @@
+{
+  "name": "workflowautomation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "find . -name \"node_modules\" -type d -prune -exec rm -rf '{}' +",
+    "dev": "sst dev",
+    "devlog": "sst dev 2> out",
+    "predev": "docker compose up -d",
+    "build": "sst build",
+    "deploy": "sst deploy",
+    "remove": "sst remove",
+    "console": "sst console",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20241022.0",
+    "@ianvs/prettier-plugin-sort-imports": "4.3.1",
+    "prettier-plugin-tailwindcss": "0.6.8",
+    "@tsconfig/node22": "22.0.0",
+    "sst": "3.3.23",
+    "typescript": "5.6.3",
+    "prettier": "3.3.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "trustedDependencies": [
+    "core-js-pure",
+    "esbuild"
+  ]
+}

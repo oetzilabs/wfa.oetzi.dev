@@ -1,0 +1,8 @@
+{
+  "extends": ["@tsconfig/node22/tsconfig.json", "./.sst/platform/tsconfig.json"],
+  "exclude": ["packages/"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": ["@cloudflare/workers-types"]
+  }
+}
