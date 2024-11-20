@@ -27,6 +27,7 @@
     "packages/*"
   ],
   "trustedDependencies": [
+    "@parcel/watcher",
     "core-js-pure",
     "esbuild"
   ]
