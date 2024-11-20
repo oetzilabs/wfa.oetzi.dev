@@ -4,18 +4,6 @@ import { allSecrets } from "./Secrets";
 import { mainStorage } from "./Storage";
 
 const link = [...allSecrets, auth, mainStorage];
-
-export const api = new sst.aws.ApiGatewayV2("Api", {
-  domain: {
-    name: $interpolate`api.${domain}`,
-    dns: cf,
-  },
-  cors: {
-    allowOrigins: ["*"],
-  },
-  link,
-});
-
 const copyFiles = [
   {
     from: "packages/core/src/drizzle",
@@ -23,8 +11,9 @@ const copyFiles = [
   },
 ];
 
-api.route("GET /session", {
-  handler: "packages/functions/src/session.handler",
+export const hono_api = new sst.cloudflare.Worker("HonoApi", {
+  domain: $interpolate`api.${domain}`,
+  handler: "packages/functions/src/open_api.handler",
   link,
-  copyFiles,
+  url: true,
 });

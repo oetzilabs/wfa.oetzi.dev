@@ -42,7 +42,7 @@ export default $config({
       dbStudioUrn: studio.urn,
 
       authUrl: auth.auth.authenticator.url,
-      api: api.api.url,
+      api: api.hono_api.url,
 
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
     };

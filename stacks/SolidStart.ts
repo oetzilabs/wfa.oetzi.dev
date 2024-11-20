@@ -1,4 +1,4 @@
-import { api } from "./Api";
+import { hono_api } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
 import { realtime } from "./Realtime";
@@ -8,11 +8,11 @@ import { mainStorage } from "./Storage";
 const main_app_url = $dev ? "http://localhost:3000" : $interpolate`https://${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [...allSecrets, api, auth, realtime, mainStorage],
+  link: [...allSecrets, hono_api, auth, realtime, mainStorage],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
-    VITE_API_URL: api.url,
+    VITE_API_URL: hono_api.url.get()!,
     VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
     VITE_LOGIN_REDIRECT_URI: $interpolate`${main_app_url}/api/auth/callback`,
@@ -23,7 +23,7 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   },
   domain: {
     name: domain,
-    aliases: [`www.${domain}`],
+    aliases: [`workflowautomation.${domain}`],
     dns: cf,
   },
   invalidation: {
