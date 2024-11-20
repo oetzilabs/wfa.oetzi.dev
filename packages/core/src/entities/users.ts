@@ -61,6 +61,15 @@ export module Users {
     });
   };
 
+  export const findBySessionToken = async (token: string, tsx = db) => {
+    return tsx.query.sessions.findFirst({
+      where: (fields, ops) => ops.eq(fields.access_token, token),
+      with: {
+        user: true,
+      },
+    });
+  };
+
   export const findByEmail = async (_email: string, tsx = db) => {
     const isValid = safeParse(Validator.EmailSchema, _email);
     if (!isValid.success) {

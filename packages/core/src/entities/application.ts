@@ -47,6 +47,15 @@ export module Applications {
     });
   };
 
+  export const findByToken = async (token: string, tsx = db) => {
+    return tsx.query.applications.findFirst({
+      where: (fields, ops) => ops.eq(fields.token, token),
+      with: {
+        ...Applications._with,
+      },
+    });
+  };
+
   export const findByName = async (name: string, tsx = db) => {
     return tsx.query.applications.findFirst({
       where: (fields, ops) => ops.eq(fields.name, name),
