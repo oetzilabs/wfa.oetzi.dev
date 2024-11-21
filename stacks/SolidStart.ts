@@ -12,8 +12,8 @@ export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
-    VITE_API_URL: hono_open_api.url.get()!,
-    VITE_APP_URL: main_app_url.get(),
+    VITE_API_URL: $interpolate`api.${domain}`,
+    VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
     VITE_LOGIN_REDIRECT_URI: $interpolate`${main_app_url}/api/auth/callback`,
     VITE_MQTT_CONNECTION_STRING: realtime.endpoint,

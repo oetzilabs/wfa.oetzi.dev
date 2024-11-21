@@ -4,9 +4,9 @@ export default $config({
   app(input) {
     return {
       name: "workflowautomation",
-      region: "eu-central-1",
       removal: input.stage === "production" ? "retain" : "remove",
-      home: "aws",
+      home: "cloudflare",
+      region: "eu-central-1",
       providers: {
         aws: {
           region: "eu-central-1",
@@ -17,14 +17,14 @@ export default $config({
   },
   async run() {
     await import("./stacks/Secrets");
-    await import("./stacks/Domain");
+    const { domain } = await import("./stacks/Domain");
     const { mainAWSStorage, mainCloudflareStorage } = await import("./stacks/Storage");
 
     const { realtime, realtimeSubscriber } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
     const { hono_open_api } = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
-    const { migration: migrate, generate, studio, seed } = await import("./stacks/Database");
+    const { migration, generate, studio, seed, dockerstart } = await import("./stacks/Database");
 
     return {
       mainStorageName: mainAWSStorage.name,
@@ -37,13 +37,15 @@ export default $config({
       realtimeUrn: realtime.urn,
       realtimeSubscriber: realtimeSubscriber.urn,
 
-      migrationUrn: migrate.urn,
+      migrationUrn: migration.urn,
+      dockerstartUrn: dockerstart.urn,
       generateUrn: generate.urn,
       seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
 
       authUrl: auth.auth.authenticator.url,
-      open_api: hono_open_api.url,
+      open_api: $interpolate`https://api.${domain}`,
+      open_api_worker_url: hono_open_api.url,
 
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
     };

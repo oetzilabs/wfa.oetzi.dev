@@ -6,10 +6,6 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
-    "Api": {
-      "type": "sst.aws.ApiGatewayV2"
-      "url": string
-    }
     "Auth": {
       "publicKey": string
       "type": "sst.aws.Auth"
@@ -35,82 +31,12 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "MailPassword": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MailUsername": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "MainEmail": {
-      "configSet": string
-      "sender": string
-      "type": "sst.aws.Email"
-    }
-    "MainEmailBouncerDLQ": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailBouncerQueue": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailBouncerTopic": {
-      "arn": string
-      "type": "sst.aws.SnsTopic"
-    }
-    "MainEmailBucket": {
+    "MainAWSStorage": {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "MainEmailComplaintDLQ": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailComplaintQueue": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailComplaintTopic": {
-      "arn": string
-      "type": "sst.aws.SnsTopic"
-    }
-    "MainEmailDeliveryDLQ": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailDeliveryQueue": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailDeliveryTopic": {
-      "arn": string
-      "type": "sst.aws.SnsTopic"
-    }
-    "MainEmailReceivedDLQ": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailReceivedQueue2": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailReceivedTopic2": {
-      "arn": string
-      "type": "sst.aws.SnsTopic"
-    }
-    "MainEmailSendDLQ": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailSendQueue": {
-      "type": "sst.aws.Queue"
-      "url": string
-    }
-    "MainEmailSendTopic": {
-      "arn": string
-      "type": "sst.aws.SnsTopic"
+    "MainCloudflareStorage": {
+      "type": "sst.cloudflare.Bucket"
     }
     "RealtimeServer": {
       "authorizer": string

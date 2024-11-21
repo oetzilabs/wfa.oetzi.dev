@@ -15,11 +15,11 @@ export type SystemNotificationAction =
 
 export const system_notifications = commonTable(
   "system_notifications",
-  {
-    title: text("title").notNull(),
-    message: text("message"),
-    action: json("action").$type<SystemNotificationAction>().default({ type: "hide", label: "Close" }),
-  },
+  (t) => ({
+    title: t.text("title").notNull(),
+    message: t.text("message"),
+    action: t.json("action").$type<SystemNotificationAction>().default({ type: "hide", label: "Close" }),
+  }),
   "system_notification",
 );
 

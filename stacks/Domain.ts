@@ -5,7 +5,7 @@ export const domain =
   }[$app.stage] || $app.stage + ".dev.wfa.oetzi.dev";
 
 export const zone = cloudflare.getZoneOutput({
-  name: "wfa.oetzi.dev",
+  name: "oetzi.dev",
 });
 
 export const cf = sst.cloudflare.dns({

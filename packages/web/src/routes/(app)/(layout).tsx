@@ -181,7 +181,7 @@ export default function DashboardLayout(props: RouteSectionProps) {
   return (
     <div class="w-full flex flex-col gap-4 h-[calc(100vh-61px)] grow">
       <div class="flex flex-col grow w-full h-full">
-        <div class="flex flex-col gap-0 w-full h-full relative">
+        <div class="flex flex-row gap-0 w-full h-full relative">
           <Sidebar />
           <div class="flex flex-col w-full h-full overflow-y-scroll">
             <div class="flex flex-col gap-0 w-full grow container mx-auto">
