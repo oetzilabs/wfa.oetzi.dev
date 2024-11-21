@@ -23,7 +23,6 @@ export const sessions = schema.table("session", (t) => ({
     .notNull()
     .references(() => users.id, {
       onDelete: "cascade",
-      onUpdate: "no action",
     }),
   expiresAt: t
     .timestamp("expires_at", {

@@ -1,6 +1,8 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Validator } from "@wfa/core/src/validator";
+import { App } from "../app";
+import { bearer } from "../middleware/authentication";
 
 const main_route = createRoute({
   method: "get",
@@ -48,7 +50,8 @@ const main_route = createRoute({
   },
 });
 
-export const registerRoute = (app: OpenAPIHono) => {
+export const registerRoute = (app: App) => {
+  app.use(main_route.getRoutingPath(), bearer);
   return app.openapi(main_route, async (c) => {
     const { id } = c.req.valid("param");
     const app = await Applications.findById(id);

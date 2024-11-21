@@ -4,8 +4,8 @@ services:
     volumes:
       - data:/var/lib/postgresql/data
     environment: 
-      POSTGRES_PASSWORD: tkpassword
-      POSTGRES_USER: tkuser
+      POSTGRES_PASSWORD: wfapassword
+      POSTGRES_USER: wfauser
       POSTGRES_DB: workflowautomation
     ports:
       - "25432:5432"

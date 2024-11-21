@@ -3,10 +3,11 @@ export * from "./schemas/utils";
 export * from "./schemas/mailbouncer";
 export * from "./schemas/mailcomplaint";
 
-export * from "./schemas/applications";
-
 export * from "./schemas/users";
 export * from "./schemas/sessions";
+
+export * from "./schemas/applications";
+export * from "./schemas/documents";
 
 export * from "./schemas/verifications";
 

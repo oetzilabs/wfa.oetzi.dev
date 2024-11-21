@@ -1,5 +1,12 @@
 import { secret } from "./Secrets";
 
+export const dockerstart = new sst.x.DevCommand("DB_DockerStart", {
+  dev: {
+    command: "docker compose up -d",
+    autostart: true,
+  },
+});
+
 export const migration = new sst.x.DevCommand("DB_Migration", {
   dev: {
     command: "bun run drizzle-kit migrate",

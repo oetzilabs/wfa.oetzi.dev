@@ -1,6 +1,8 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Users } from "@wfa/core/src/entities/users";
 import { Validator } from "@wfa/core/src/validator";
+import { App } from "../app";
+import { bearer } from "../middleware/authentication";
 
 const main_route = createRoute({
   method: "get",
@@ -43,17 +45,21 @@ const main_route = createRoute({
   },
 });
 
-export const registerRoute = (app: OpenAPIHono) => {
+export const registerRoute = (app: App) => {
+  app.use(main_route.getRoutingPath(), bearer);
   return app.openapi(main_route, async (c) => {
     const { id } = c.req.valid("param");
     const user = await Users.findById(id);
     if (!user) {
       return c.json({ error: "User not found" }, 404);
     }
-    return c.json({
-      id: user.id,
-      email: user.email,
-      image: user.image,
-    });
+    return c.json(
+      {
+        id: user.id,
+        email: user.email,
+        image: user.image,
+      },
+      200,
+    );
   });
 };

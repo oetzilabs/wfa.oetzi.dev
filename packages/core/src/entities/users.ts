@@ -62,12 +62,16 @@ export module Users {
   };
 
   export const findBySessionToken = async (token: string, tsx = db) => {
-    return tsx.query.sessions.findFirst({
+    const session = await tsx.query.sessions.findFirst({
       where: (fields, ops) => ops.eq(fields.access_token, token),
       with: {
         user: true,
       },
     });
+    if (!session) {
+      throw new Error("Session not found");
+    }
+    return session.user;
   };
 
   export const findByEmail = async (_email: string, tsx = db) => {
