@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export module Validator {
   export const prefixed_cuid2 = z.custom<string>((val: string) => {
+    if (!val) return z.NEVER;
     const splitUnderscore = val.split("_");
     const lastString = splitUnderscore[splitUnderscore.length - 1];
 

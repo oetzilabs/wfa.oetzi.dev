@@ -1,68 +1,82 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Validator } from "@wfa/core/src/validator";
-import { App } from "../app";
-import { bearer } from "../middleware/authentication";
+import { StatusCodes } from "http-status-codes";
+import { App, Env } from "../app";
+import { AuthorizationHeader, bearer } from "../middleware/authentication";
 
-const main_route = createRoute({
-  method: "get",
-  path: "/applications/{id}",
-  request: {
-    params: z.object({
-      id: Validator.prefixed_cuid2.openapi({
-        param: {
-          name: "id",
-          in: "path",
-        },
-        example: "app_nc6bzmkmd014706rfda898to",
-      }),
-    }),
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: z
-            .object({
-              id: z.string().openapi({
-                example: "app_nc6bzmkmd014706rfda898to",
-              }),
-            })
-            .openapi("Application"),
-        },
-      },
-      description: "Retrieve an application",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: z
-            .object({
-              error: z.string().openapi({
-                example: "Application not found",
-              }),
-            })
-            .openapi("Error"),
-        },
-      },
-      description: "Application not found",
-    },
-  },
-});
-
-export const registerRoute = (app: App) => {
-  app.use(main_route.getRoutingPath(), bearer);
-  return app.openapi(main_route, async (c) => {
-    const { id } = c.req.valid("param");
-    const app = await Applications.findById(id);
-    if (!app) {
-      return c.json({ error: "Application not found" }, 404);
-    }
-    return c.json(
+export module ApplicationRoute {
+  const main_route = createRoute({
+    security: [
       {
-        id: app.id,
+        Bearer: [],
       },
-      200,
-    );
+    ],
+    method: "get",
+    path: "/{id}",
+    request: {
+      params: z.object({
+        id: Validator.prefixed_cuid2.openapi({
+          param: {
+            name: "id",
+            in: "path",
+          },
+          example: "app_nc6bzmkmd014706rfda898to",
+        }),
+      }),
+    },
+    responses: {
+      [StatusCodes.OK]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                id: z.string().openapi({
+                  example: "app_nc6bzmkmd014706rfda898to",
+                }),
+              })
+              .openapi("Application"),
+          },
+        },
+        description: "Retrieve an application",
+      },
+      [StatusCodes.NOT_FOUND]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                error: z.string().openapi({
+                  example: "Application not found",
+                }),
+              })
+              .openapi("ApplicationNotFoundError"),
+          },
+        },
+        description: "Application not found",
+      },
+      [StatusCodes.UNAUTHORIZED]: {
+        description: "Unauthorized",
+      },
+    },
   });
-};
+
+  export const create = () => {
+    const app = new OpenAPIHono<Env>();
+    // console.log("registering application route");
+    app.use(main_route.getRoutingPath(), bearer);
+    return app.openapi(main_route, async (c) => {
+      // console.log("calling application route");
+      const { id } = c.req.valid("param");
+      const app = await Applications.findById(id);
+      if (!app) {
+        return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
+      }
+      return c.json(
+        {
+          id: app.id,
+        },
+        StatusCodes.OK,
+      );
+    });
+  };
+}

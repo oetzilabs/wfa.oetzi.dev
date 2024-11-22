@@ -31,6 +31,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "HonoOpenApiAws": {
+      "type": "sst.aws.ApiGatewayV2"
+      "url": string
+    }
     "MainAWSStorage": {
       "name": string
       "type": "sst.aws.Bucket"

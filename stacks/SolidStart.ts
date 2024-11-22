@@ -1,4 +1,7 @@
-import { hono_open_api_cf } from "./Api";
+import {
+  // hono_open_api_cf
+  hono_open_api_aws,
+} from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
 import { realtime } from "./Realtime";
@@ -8,11 +11,11 @@ import { mainAWSStorage } from "./Storage";
 const main_app_url = $dev ? $interpolate`http://localhost:3000` : $interpolate`https://${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [...allSecrets, hono_open_api_cf, auth, realtime, mainAWSStorage],
+  link: [...allSecrets, hono_open_api_aws, auth, realtime, mainAWSStorage],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
-    VITE_API_URL: $interpolate`api.${domain}`,
+    VITE_API_URL: $interpolate`api-aws.${domain}`,
     VITE_APP_URL: main_app_url,
     VITE_AUTH_URL: auth.authenticator.url,
     VITE_LOGIN_REDIRECT_URI: $interpolate`${main_app_url}/api/auth/callback`,

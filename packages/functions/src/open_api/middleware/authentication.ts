@@ -8,9 +8,19 @@ const AuthenticationSchema = z.strictObject({
   token: z.string(),
 });
 
+export const AuthorizationHeader = z.string().openapi({
+  param: {
+    name: "authorization",
+    in: "header",
+    required: true,
+  },
+});
+
 export const bearer = bearerAuth({
   prefix: "Bearer",
+  headerName: "Autorization",
   verifyToken: async (t, c) => {
+    if (!t) return false;
     if (t.length === 0) return false;
     if (!t.includes(":")) return false;
 

@@ -22,7 +22,10 @@ export default $config({
 
     const { realtime, realtimeSubscriber } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
-    const { hono_open_api_cf: hono_open_api } = await import("./stacks/Api");
+    const {
+      // hono_open_api_cf,
+      hono_open_api_aws,
+    } = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
     const { migration, generate, studio, seed, dockerstart } = await import("./stacks/Database");
 
@@ -44,8 +47,10 @@ export default $config({
       dbStudioUrn: studio.urn,
 
       authUrl: auth.auth.authenticator.url,
+
       open_api: $interpolate`https://api.${domain}`,
-      open_api_worker_url: hono_open_api.url,
+      // open_api_worker_url: hono_open_api_cf.url,
+      open_api_aws_url: hono_open_api_aws.url,
 
       solidStartUrl: $dev ? "http://localhost:3000" : solidStart.solidStartApp.url,
     };

@@ -136,7 +136,7 @@ export module Documents {
   export const findManyByApplicationToken = async (token: string, options?: FilterOptions, tsx = db) => {
     const application = await Applications.findByToken(token, tsx);
     if (!application) {
-      throw new Error("Application not found");
+      return [];
     }
 
     const o = Object.assign(options ?? {}, {
