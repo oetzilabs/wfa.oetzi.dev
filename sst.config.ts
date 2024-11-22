@@ -22,7 +22,7 @@ export default $config({
 
     const { realtime, realtimeSubscriber } = await import("./stacks/Realtime");
     const auth = await import("./stacks/Auth");
-    const { hono_open_api } = await import("./stacks/Api");
+    const { hono_open_api_cf: hono_open_api } = await import("./stacks/Api");
     const solidStart = await import("./stacks/SolidStart");
     const { migration, generate, studio, seed, dockerstart } = await import("./stacks/Database");
 

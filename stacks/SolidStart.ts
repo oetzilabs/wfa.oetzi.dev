@@ -1,4 +1,4 @@
-import { hono_open_api } from "./Api";
+import { hono_open_api_cf } from "./Api";
 import { auth } from "./Auth";
 import { cf, domain } from "./Domain";
 import { realtime } from "./Realtime";
@@ -8,7 +8,7 @@ import { mainAWSStorage } from "./Storage";
 const main_app_url = $dev ? $interpolate`http://localhost:3000` : $interpolate`https://${domain}`;
 
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
-  link: [...allSecrets, hono_open_api, auth, realtime, mainAWSStorage],
+  link: [...allSecrets, hono_open_api_cf, auth, realtime, mainAWSStorage],
   path: "packages/web",
   buildCommand: "pnpm build",
   environment: {
