@@ -179,12 +179,12 @@ export default function DashboardLayout(props: RouteSectionProps) {
   const hideNotificationAction = useAction(hideNotification);
 
   return (
-    <div class="w-full flex flex-col gap-4 h-[calc(100vh-61px)] grow">
+    <div class="w-full flex flex-col gap-4 h-[calc(100vh-60px)] grow">
       <div class="flex flex-col grow w-full h-full">
         <div class="flex flex-row gap-0 w-full h-full relative">
           <Sidebar />
           <div class="flex flex-col w-full h-full overflow-y-scroll">
-            <div class="flex flex-col gap-0 w-full grow container mx-auto">
+            <div class="flex flex-col gap-0 w-full grow">
               <Suspense
                 fallback={
                   <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">

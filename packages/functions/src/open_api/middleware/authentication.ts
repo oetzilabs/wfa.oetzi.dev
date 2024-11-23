@@ -10,7 +10,7 @@ export const AuthenticationSchema = z.strictObject({
 
 export const AuthorizationHeader = z.string().openapi({
   param: {
-    name: "Authorization",
+    name: "authorization",
     in: "header",
     required: true,
   },

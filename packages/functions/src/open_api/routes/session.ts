@@ -108,15 +108,7 @@ export module SessionRoute {
     // app.use(main_route.getRoutingPath(), bearer);
     app
       .openapi(user_route, async (c) => {
-        console.log("calling user session route");
-        console.dir(
-          { req: c.req.raw },
-          {
-            depth: Infinity,
-          },
-        );
         const { authorization } = c.req.valid("header");
-        console.log("Authorization", authorization);
 
         try {
           const user = await getUser(authorization);
@@ -135,9 +127,7 @@ export module SessionRoute {
         }
       })
       .openapi(app_route, async (c) => {
-        // console.log("calling application route");
         const { authorization } = c.req.valid("header");
-        console.log("Authorization", authorization);
 
         try {
           const app = await getApplication(authorization);

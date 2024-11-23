@@ -31,7 +31,8 @@ export default function Dashboard() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   return (
-    <main class="w-full flex flex-col gap-0">
+    <main class="w-full flex flex-col gap-0 h-full grow min-h-[calc(100vh-60px)]">
+      <div class="w-full flex flex-col grow" />
       <Footer />
     </main>
   );

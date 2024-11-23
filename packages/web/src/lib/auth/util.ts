@@ -5,7 +5,7 @@ import { Organizations } from "@wfa/core/src/entities/organizations";
 import { Users } from "@wfa/core/src/entities/users";
 import { getCookie, getEvent } from "vinxi/http";
 import { Auth } from ".";
-import { getContext } from "./context";
+import { ensureAuthenticated, getContext } from "./context";
 
 export const getAuthenticatedUser = query(async () => {
   "use server";
@@ -118,12 +118,6 @@ export const getAuthenticatedAdminSession = query(async () => {
   }
   if (session.createdAt) userSession.createdAt = session.createdAt;
 
-  if (userSession.user?.role) {
-    if (userSession.user.role !== "admin") {
-      throw redirect("/auth/login");
-    }
-  }
-
   return userSession;
 }, "admin-user");
 
@@ -149,20 +143,7 @@ export const getAuthenticatedSessions = query(async () => {
 
 export const sendVerificationEmail = action(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) {
-    throw redirect("/auth/login");
-  }
-
-  if (!ctx.session) {
-    console.error("Unauthorized");
-    throw redirect("/auth/login");
-  }
-
-  if (!ctx.user) {
-    console.error("Unauthorized");
-    throw redirect("/auth/login");
-  }
+  const [ctx, event] = await ensureAuthenticated();
 
   // SES send email to user with verification code
   await setTimeout(2000);
@@ -170,22 +151,17 @@ export const sendVerificationEmail = action(async () => {
   return true;
 });
 
+export const logoutSession = action(async (sessionId: string) => {
+  "use server";
+  const [ctx, event] = await ensureAuthenticated();
+
+  await Auth.invalidateSession(sessionId);
+  return true;
+});
+
 export const checkVerification = query(async () => {
   "use server";
-  const [ctx, event] = await getContext();
-  if (!ctx) {
-    throw redirect("/auth/login");
-  }
-
-  if (!ctx.session) {
-    console.error("Unauthorized");
-    throw redirect("/auth/login");
-  }
-
-  if (!ctx.user) {
-    console.error("Unauthorized");
-    throw redirect("/auth/login");
-  }
+  const [ctx, event] = await ensureAuthenticated();
   const user = await Users.findById(ctx.user.id);
   if (!user) {
     throw redirect("/auth/login");

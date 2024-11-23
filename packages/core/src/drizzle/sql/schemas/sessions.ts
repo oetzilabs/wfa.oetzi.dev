@@ -33,6 +33,9 @@ export const sessions = schema.table("session", (t) => ({
   access_token: t.text("access_token"),
   organization_id: t.text("organization_id"),
   application_id: t.text("application_id"),
+  browser: t.text("browser"),
+  ip: t.text("ip"),
+  fingerprint: t.text("fingerprint"),
 }));
 
 export const sessionRelation = relations(sessions, ({ one, many }) => ({

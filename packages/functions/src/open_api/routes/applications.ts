@@ -25,13 +25,7 @@ export module ApplicationRoute {
         }),
       }),
       headers: z.object({
-        Authorization: AuthorizationHeader.openapi({
-          param: {
-            name: "authorization",
-            in: "header",
-          },
-          example: "Bearer <user|app>:<token>",
-        }),
+        authorization: AuthorizationHeader,
       }),
     },
     responses: {

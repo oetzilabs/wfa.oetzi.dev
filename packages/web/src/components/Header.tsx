@@ -23,9 +23,12 @@ export function Header() {
 
   return (
     <header
-      class={cn("bg-background flex flex-row w-full py-3.5 items-center justify-between", {
-        hidden: isHiddenPath(),
-      })}
+      class={cn(
+        "bg-background flex flex-row w-full py-3.5 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 h-[60px]",
+        {
+          hidden: isHiddenPath(),
+        },
+      )}
     >
       <div class="flex flex-row w-full items-center justify-between px-4">
         <div class="flex flex-row items-center justify-start w-max gap-2">

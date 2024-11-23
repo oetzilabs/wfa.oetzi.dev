@@ -1,7 +1,7 @@
 import type { APIEvent } from "@solidjs/start/server";
 import { Auth } from "@/lib/auth";
 import { Users } from "@wfa/core/src/entities/users";
-import { sendRedirect } from "vinxi/http";
+import { getRequestFingerprint, getRequestIP, sendRedirect } from "vinxi/http";
 
 export async function GET(e: APIEvent) {
   const event = e.nativeEvent;
@@ -30,9 +30,6 @@ export async function GET(e: APIEvent) {
       });
       return null;
     });
-  console.dir(response, {
-    depth: Infinity,
-  });
   if (!response) {
     return sendRedirect(event, "/auth/error?error=missing_first_auth_response", 303);
   }
@@ -47,14 +44,9 @@ export async function GET(e: APIEvent) {
   })
     .then((r) => r.json())
     .catch((e) => {
-      console.dir(e, {
-        depth: Infinity,
-      });
       return null;
     });
-  console.dir(sessionResponse, {
-    depth: Infinity,
-  });
+
   if (!sessionResponse) {
     return sendRedirect(event, "/auth/error?error=missing_session", 303);
   }
@@ -65,10 +57,18 @@ export async function GET(e: APIEvent) {
 
   const sessionToken = Auth.generateSessionToken();
 
+  const ip = getRequestIP(event);
+  const ip2 = getRequestIP(event, { xForwardedFor: true });
+  const finalIp = ip2 ?? ip;
+  const fingerprint = await getRequestFingerprint(event);
+
   const session = await Auth.createSession(sessionToken, {
     userId: sessionResponse.id,
     company_id: sessionResponse.company_id,
     organization_id: sessionResponse.organization_id,
+    browser: e.request.headers.get("user-agent") ?? "unknown",
+    ip: finalIp ?? "unknown",
+    fingerprint,
   });
 
   Auth.setSessionCookie(event, sessionToken);

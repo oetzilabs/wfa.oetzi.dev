@@ -1,15 +1,21 @@
-import type { CurrencyCode } from "@/lib/api/application";
 import { language, setLanguage } from "@/components/stores/Language";
 import { Combobox, ComboboxContent, ComboboxItem, ComboboxTrigger } from "@/components/ui/combobox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrencies, getLanguage, setPreferedCurrency } from "@/lib/api/application";
-import { getAuthenticatedSession } from "@/lib/auth/util";
-import { cookieStorage, makePersisted } from "@solid-primitives/storage";
+import { getAuthenticatedSession, getAuthenticatedSessions, logoutSession } from "@/lib/auth/util";
 import { createAsync, revalidate, RouteDefinition, useAction, useSearchParams, useSubmission } from "@solidjs/router";
-import DollarSign from "lucide-solid/icons/dollar-sign";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import relativeTime from "dayjs/plugin/relativeTime";
 import Languages from "lucide-solid/icons/languages";
 import Loader2 from "lucide-solid/icons/loader-2";
-import { createSignal, Show, Suspense } from "solid-js";
+import { createMemo, createSignal, For, Show, Suspense } from "solid-js";
+import { toast } from "solid-sonner";
+import { Badge } from "../../../../components/ui/badge";
+import { Button } from "../../../../components/ui/button";
+
+dayjs.extend(localizedFormat);
+dayjs.extend(relativeTime);
 
 export const route = {
   preload: async () => {
@@ -30,9 +36,58 @@ const LANGUAGES = [
   },
 ];
 
+const UserAgentDisplay = (props: { userAgent: string }) => {
+  const browserMatchers = [
+    { name: "Chrome", regex: /Chrome\/([\d.]+)/ },
+    { name: "Firefox", regex: /Firefox\/([\d.]+)/ },
+    { name: "Safari", regex: /Version\/([\d.]+).*Safari/ },
+    { name: "Edge", regex: /Edg\/([\d.]+)/ },
+    { name: "Opera", regex: /OPR\/([\d.]+)/ },
+  ];
+
+  const osMatchers = [
+    { name: "Windows", regex: /Windows NT ([\d.]+)/ },
+    { name: "macOS", regex: /Mac OS X ([\d_]+)/ },
+    { name: "Linux", regex: /Linux/ },
+    { name: "Android", regex: /Android ([\d.]+)/ },
+    { name: "iOS", regex: /iPhone OS ([\d_]+)/ },
+  ];
+  const formatUserAgent = createMemo(() => {
+    const userAgent = props.userAgent;
+
+    let browser = "Unknown Browser";
+    let browserVersion = "";
+    for (const { name, regex } of browserMatchers) {
+      const match = userAgent.match(regex);
+      if (match) {
+        browser = name;
+        browserVersion = match[1].replace(/_/g, ".");
+        break;
+      }
+    }
+
+    let os = "Unknown OS";
+    let osVersion = "";
+    for (const { name, regex } of osMatchers) {
+      const match = userAgent.match(regex);
+      if (match) {
+        os = name;
+        osVersion = match[1]?.replace(/_/g, ".") || "";
+        break;
+      }
+    }
+
+    return `${browser} ${browserVersion} on ${os} ${osVersion}`.trim();
+  });
+
+  return <span>{formatUserAgent()}</span>;
+};
+
 export default function Settings() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
-  const currencies = createAsync(() => getCurrencies());
+  const sessions = createAsync(() => getAuthenticatedSessions(), { deferStream: true });
+  const logoutSessionAction = useAction(logoutSession);
+  const logoutSessionStatus = useSubmission(logoutSession);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentTab = () => (searchParams.tab as string | undefined) ?? "account";
@@ -62,35 +117,21 @@ export default function Settings() {
               orientation="vertical"
               class="w-full h-full grow gap-2"
             >
-              <TabsList class="min-w-40 w-fit h-fit min-h-[300px] rounded-xl gap-1">
+              <TabsList class="min-w-[200px] w-fit h-full gap-0 rounded-none">
                 <TabsTrigger
                   value="account"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-white dark:data-[selected]:text-black rounded-lg"
+                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 h-auto"
                 >
                   Account
                 </TabsTrigger>
                 <TabsTrigger
                   value="sessions"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-white dark:data-[selected]:text-black rounded-lg"
+                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 h-auto"
                 >
                   Sessions
                 </TabsTrigger>
-                <TabsTrigger
-                  value="language"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-white dark:data-[selected]:text-black rounded-lg"
-                >
-                  Language
-                </TabsTrigger>
-                <TabsTrigger
-                  value="currency"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-white dark:data-[selected]:text-black rounded-lg"
-                >
-                  Currency
-                </TabsTrigger>
               </TabsList>
-              <TabsContent value="account" class="w-full"></TabsContent>
-              <TabsContent value="sessions" class="w-full"></TabsContent>
-              <TabsContent value="language" class="w-full">
+              <TabsContent value="account" class="w-full py-2">
                 <div class="flex flex-col gap-2">
                   <h1 class="text-2xl font-bold">Language</h1>
                   <div class="flex flex-row gap-2">
@@ -120,33 +161,61 @@ export default function Settings() {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="currency" class="w-full">
+              <TabsContent value="sessions" class="w-full py-2">
                 <div class="flex flex-col gap-2">
-                  <h1 class="text-2xl font-bold">Currency</h1>
-                  <div class="flex flex-row gap-2">
-                    <Show when={currencies()}>
-                      {(cs) => (
-                        <Combobox<{ label: string; value: CurrencyCode }>
-                          value={cs().find((l) => l.value === s().user!.currency_code)!}
-                          disabled={setPreferedCurrencyStatus.pending}
-                          optionValue="value"
-                          optionLabel="label"
-                          options={cs()}
-                          onChange={async (v) => {
-                            if (!v) return;
-                            await setPreferedCurrencyAction(v.value);
-                            await revalidate([getAuthenticatedSession.key]);
-                          }}
-                          itemComponent={(props) => (
-                            <ComboboxItem item={props.item}>{props.item.rawValue.label}</ComboboxItem>
+                  <h1 class="text-2xl font-bold">Sessions</h1>
+                  <div class="flex flex-col gap-2">
+                    <Show when={session() && session()}>
+                      {(currentSession) => (
+                        <Show when={sessions() && sessions()}>
+                          {(ses) => (
+                            <For each={ses()}>
+                              {(s) => (
+                                <div class="w-full flex flex-col gap-2 rounded-sm bg-neutral-100 dark:bg-neutral-900 p-3 border border-neutral-200 dark:border-neutral-800">
+                                  <div class="w-full flex flex-row gap-2 justify-between">
+                                    <div class="flex flex-row gap-2 items-center text-sm">
+                                      {dayjs(s.createdAt).format("LLLL")}
+                                    </div>
+                                    <Show when={currentSession().id === s.id}>
+                                      <Badge class="flex flex-row gap-2 items-center text-sm uppercase">current</Badge>
+                                    </Show>
+                                  </div>
+                                  <div class="flex flex-row gap-2 items-center text-xs">
+                                    <time
+                                      datetime={dayjs(s.expiresAt).toISOString()}
+                                      title={dayjs(s.expiresAt).format("LLLL")}
+                                    >
+                                      expires {dayjs(s.expiresAt).fromNow()}
+                                    </time>
+                                  </div>
+                                  <div class="flex flex-col gap-2 items-start text-sm w-full">
+                                    <Show when={s.browser}>
+                                      {(browser) => <UserAgentDisplay userAgent={browser()} />}
+                                    </Show>
+                                    <span>IP: {s.ip}</span>
+                                    <span>Fingerprint: {s.fingerprint}</span>
+                                  </div>
+                                  <div class="flex flex-row gap-2 items-center text-sm w-full justify-end">
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        toast.promise(logoutSessionAction(s.id), {
+                                          loading: "Logging out...",
+                                          success: "Logged out",
+                                          error: "Could not log out",
+                                        });
+                                      }}
+                                      disabled={logoutSessionStatus.pending || logoutSessionStatus.input?.[0] === s.id}
+                                    >
+                                      Logout
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </For>
                           )}
-                        >
-                          <ComboboxTrigger class="flex flex-row gap-2 items-center h-8 px-2 bg-white dark:bg-black">
-                            <DollarSign class="size-3" />
-                            <span class="text-sm">{cs().find((l) => l.value === s().user!.currency_code)?.value}</span>
-                          </ComboboxTrigger>
-                          <ComboboxContent />
-                        </Combobox>
+                        </Show>
                       )}
                     </Show>
                   </div>
