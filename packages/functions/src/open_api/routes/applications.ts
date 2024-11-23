@@ -3,7 +3,7 @@ import { Applications } from "@wfa/core/src/entities/application";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { App, Env } from "../app";
-import { AuthorizationHeader, bearer } from "../middleware/authentication";
+import { AuthorizationHeader } from "../middleware/authentication";
 
 export module ApplicationRoute {
   const main_route = createRoute({
@@ -22,6 +22,15 @@ export module ApplicationRoute {
             in: "path",
           },
           example: "app_nc6bzmkmd014706rfda898to",
+        }),
+      }),
+      headers: z.object({
+        Authorization: AuthorizationHeader.openapi({
+          param: {
+            name: "authorization",
+            in: "header",
+          },
+          example: "Bearer <user|app>:<token>",
         }),
       }),
     },
@@ -63,7 +72,7 @@ export module ApplicationRoute {
   export const create = () => {
     const app = new OpenAPIHono<Env>();
     // console.log("registering application route");
-    app.use(main_route.getRoutingPath(), bearer);
+    // app.use(main_route.getRoutingPath(), bearer);
     return app.openapi(main_route, async (c) => {
       // console.log("calling application route");
       const { id } = c.req.valid("param");

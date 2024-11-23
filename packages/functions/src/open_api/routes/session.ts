@@ -1,0 +1,161 @@
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { Validator } from "@wfa/core/src/validator";
+import { StatusCodes } from "http-status-codes";
+import { getApplication, getUser } from "../../utils";
+import { Env } from "../app";
+import { AuthorizationHeader } from "../middleware/authentication";
+
+export module SessionRoute {
+  const app_route = createRoute({
+    security: [
+      {
+        Bearer: [],
+      },
+    ],
+    method: "get",
+    path: "/application",
+    request: {
+      headers: z.object({
+        authorization: AuthorizationHeader,
+      }),
+    },
+    responses: {
+      [StatusCodes.OK]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                id: Validator.prefixed_cuid2.openapi({
+                  example: "app_nc6bzmkmd014706rfda898to",
+                }),
+              })
+              .openapi("ApplicationSession"),
+          },
+        },
+        description: "Retrieve an application session",
+      },
+      [StatusCodes.NOT_FOUND]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                error: z.string().openapi({
+                  example: "Session for application not found",
+                }),
+              })
+              .openapi("ApplicationSessionNotFoundError"),
+          },
+        },
+        description: "Session for application not found",
+      },
+      [StatusCodes.UNAUTHORIZED]: {
+        description: "Unauthorized",
+      },
+    },
+  });
+
+  const user_route = createRoute({
+    security: [
+      {
+        Bearer: [],
+      },
+    ],
+    method: "get",
+    path: "/user",
+    request: {
+      headers: z.object({
+        authorization: AuthorizationHeader,
+      }),
+    },
+    responses: {
+      [StatusCodes.OK]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                id: Validator.prefixed_cuid2.openapi({
+                  example: "user_nc6bzmkmd014706rfda898to",
+                }),
+              })
+              .openapi("UserSession"),
+          },
+        },
+        description: "Retrieve an user session",
+      },
+      [StatusCodes.NOT_FOUND]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                error: z.string().openapi({
+                  example: "User not found",
+                }),
+              })
+              .openapi("UserSessionNotFoundError"),
+          },
+        },
+        description: "User not found",
+      },
+      [StatusCodes.UNAUTHORIZED]: {
+        description: "Unauthorized",
+      },
+    },
+  });
+
+  export const create = () => {
+    const app = new OpenAPIHono<Env>();
+    // console.log("registering application route");
+    // app.use(main_route.getRoutingPath(), bearer);
+    app
+      .openapi(user_route, async (c) => {
+        console.log("calling user session route");
+        console.dir(
+          { req: c.req.raw },
+          {
+            depth: Infinity,
+          },
+        );
+        const { authorization } = c.req.valid("header");
+        console.log("Authorization", authorization);
+
+        try {
+          const user = await getUser(authorization);
+          if (!user) {
+            return c.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
+          }
+          return c.json(
+            {
+              id: user.id,
+            },
+            StatusCodes.OK,
+          );
+        } catch (e) {
+          console.error("user session error:", e);
+          return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
+        }
+      })
+      .openapi(app_route, async (c) => {
+        // console.log("calling application route");
+        const { authorization } = c.req.valid("header");
+        console.log("Authorization", authorization);
+
+        try {
+          const app = await getApplication(authorization);
+          if (!app) {
+            return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
+          }
+          return c.json(
+            {
+              id: app.id,
+            },
+            StatusCodes.OK,
+          );
+        } catch (e) {
+          console.error("application session error:", e);
+          return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
+        }
+      });
+
+    return app;
+  };
+}

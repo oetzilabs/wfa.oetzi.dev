@@ -10,7 +10,7 @@
     "migrate": "sst shell 'bun run drizzle-kit migrate'",
     "seed": "sst shell 'bun run src/entities/seed.ts'",
     "up": "sst shell 'bun run drizzle-kit up'",
-    "studio": "sst shell 'bun run drizzle-kit studio'"
+    "studio": "sst shell 'bun run drizzle-kit studio --host 0.0.0.0 --port 1337'"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20241112.0",

@@ -36,7 +36,7 @@ export const generate = new sst.x.DevCommand("DB_Generate", {
 
 export const studio = new sst.x.DevCommand("DB_Studio", {
   dev: {
-    command: "bun run drizzle-kit studio",
+    command: "bun run drizzle-kit studio --host 0.0.0.0",
     directory: "packages/core",
     autostart: false,
   },

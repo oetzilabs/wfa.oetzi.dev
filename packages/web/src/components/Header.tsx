@@ -3,7 +3,7 @@ import { A, createAsync, useLocation, useResolvedPath } from "@solidjs/router";
 import LogIn from "lucide-solid/icons/log-in";
 import Moon from "lucide-solid/icons/moon";
 import Sun from "lucide-solid/icons/sun";
-import { Match, Show, Switch } from "solid-js";
+import { createMemo, Match, Show, Switch } from "solid-js";
 import { getAuthenticatedSession } from "../lib/auth/util";
 import { cn } from "../lib/utils";
 import { Logo } from "./Logo";
@@ -15,11 +15,19 @@ export function Header() {
   const location = useLocation();
   const path = useResolvedPath(() => location.pathname);
 
+  const hiddenPaths = ["/auth/login", "/auth/register"];
+
+  const isHiddenPath = createMemo(() => hiddenPaths.includes(path() ?? ""));
+
   const { toggleColorMode, colorMode } = useColorMode();
 
   return (
-    <header class="bg-background flex flex-row w-full py-3.5 items-center justify-between">
-      <div class="flex flex-row w-full items-center justify-between px-8 container mx-auto">
+    <header
+      class={cn("bg-background flex flex-row w-full py-3.5 items-center justify-between", {
+        hidden: isHiddenPath(),
+      })}
+    >
+      <div class="flex flex-row w-full items-center justify-between px-4">
         <div class="flex flex-row items-center justify-start w-max gap-2">
           <A href="/" class="flex flex-row gap-4 items-center justify-center">
             <Logo small />

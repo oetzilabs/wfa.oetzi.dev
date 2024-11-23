@@ -3,7 +3,7 @@ import { Users } from "@wfa/core/src/entities/users";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { App, Env } from "../app";
-import { AuthorizationHeader, bearer } from "../middleware/authentication";
+import { AuthorizationHeader } from "../middleware/authentication";
 
 export module UserRoute {
   const main_route = createRoute({
@@ -22,6 +22,15 @@ export module UserRoute {
             in: "path",
           },
           example: "user_nc6bzmkmd014706rfda898to",
+        }),
+      }),
+      headers: z.object({
+        Authorization: AuthorizationHeader.openapi({
+          param: {
+            name: "authorization",
+            in: "header",
+          },
+          example: "Bearer <user|app>:<token>",
         }),
       }),
     },
@@ -69,7 +78,7 @@ export module UserRoute {
   export const create = () => {
     const app = new OpenAPIHono<Env>();
     // console.log("registering user route");
-    app.use(main_route.getRoutingPath(), bearer);
+    // app.use(main_route.getRoutingPath(), bearer);
     return app.openapi(main_route, async (c) => {
       // console.log("calling user route");
       const { id } = c.req.valid("param");

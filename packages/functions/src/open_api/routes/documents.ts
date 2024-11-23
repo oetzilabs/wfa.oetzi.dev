@@ -6,7 +6,7 @@ import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
 import { App, Env } from "../app";
-import { AuthorizationHeader, bearer } from "../middleware/authentication";
+import { AuthorizationHeader } from "../middleware/authentication";
 
 export module DocumentRoute {
   const get_all_documents_route = createRoute({
@@ -29,7 +29,6 @@ export module DocumentRoute {
         }),
       }),
     },
-    middlewares: [bearer],
     responses: {
       [StatusCodes.OK]: {
         content: {
@@ -70,7 +69,6 @@ export module DocumentRoute {
         }),
       }),
     },
-    middlewares: [bearer],
     responses: {
       [StatusCodes.OK]: {
         content: {
@@ -117,7 +115,6 @@ export module DocumentRoute {
         }),
       }),
     },
-    middlewares: [bearer],
     responses: {
       [StatusCodes.OK]: {
         content: {

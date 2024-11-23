@@ -22,37 +22,60 @@ export async function GET(e: APIEvent) {
   const response = await fetch(`${import.meta.env.VITE_AUTH_URL}token`, {
     method: "POST",
     body,
-  }).then(async (r) => r.json());
+  })
+    .then(async (r) => r.json())
+    .catch((e) => {
+      console.dir(e, {
+        depth: Infinity,
+      });
+      return null;
+    });
+  console.dir(response, {
+    depth: Infinity,
+  });
+  if (!response) {
+    return sendRedirect(event, "/auth/error?error=missing_first_auth_response", 303);
+  }
 
   if (!response.access_token) {
     return sendRedirect(event, "/auth/error?error=missing_access_token", 303);
   }
+  const headers = new Headers();
+  headers.append("authorization", `Bearer user:${response.access_token}`);
+  const sessionResponse = await fetch(new URL("/session/user", `https://${import.meta.env.VITE_API_URL}`), {
+    headers,
+  })
+    .then((r) => r.json())
+    .catch((e) => {
+      console.dir(e, {
+        depth: Infinity,
+      });
+      return null;
+    });
+  console.dir(sessionResponse, {
+    depth: Infinity,
+  });
+  if (!sessionResponse) {
+    return sendRedirect(event, "/auth/error?error=missing_session", 303);
+  }
 
-  const sessionResponse = await fetch(new URL("/session", import.meta.env.VITE_API_URL), {
-    headers: {
-      Authorization: `Bearer ${response.access_token}`,
-    },
-  }).then((r) => r.json());
-
-  const { id, organization_id, company_id } = sessionResponse;
-
-  if (!id) {
+  if (!sessionResponse.id) {
     return sendRedirect(event, "/auth/error?error=missing_user", 303);
   }
 
   const sessionToken = Auth.generateSessionToken();
 
   const session = await Auth.createSession(sessionToken, {
-    userId: id,
-    company_id,
-    organization_id,
+    userId: sessionResponse.id,
+    company_id: sessionResponse.company_id,
+    organization_id: sessionResponse.organization_id,
   });
 
   Auth.setSessionCookie(event, sessionToken);
 
   event.context.session = session;
 
-  const user = await Users.findById(id);
+  const user = await Users.findById(sessionResponse.id);
 
   if (user && user.verifiedAt) return sendRedirect(event, "/", 303);
   return sendRedirect(event, "/auth/verify-email", 303);

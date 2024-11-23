@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { onError } from "./errors";
 import { ApplicationRoute } from "./routes/applications";
 import { DocumentRoute } from "./routes/documents";
+import { SessionRoute } from "./routes/session";
 import { TestRoute } from "./routes/test";
 import { UserRoute } from "./routes/users";
 
@@ -28,6 +29,7 @@ export const createApp = () => {
     .route("/users", UserRoute.create())
     .route("/applications", ApplicationRoute.create())
     .route("/documents", DocumentRoute.create())
+    .route("/session", SessionRoute.create())
     .onError(onError)
     .get("/ui", swaggerUI({ url: "/doc" }));
   app.doc31("/doc", () => ({

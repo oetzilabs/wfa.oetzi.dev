@@ -1,23 +1,15 @@
 import { Users } from "@wfa/core/src/entities/users";
+import { handle } from "hono/aws-lambda";
 import { Resource } from "sst";
 import { auth } from "sst/auth";
 import { CodeAdapter } from "sst/auth/adapter/code";
 import { GoogleAdapter } from "sst/auth/adapter/google";
+import { sessions } from "./session";
 
-const session = auth.sessions<{
-  user: {
-    id: string;
-  };
-  app: {
-    id: string;
-    token: string;
-  };
-}>();
-
-const authorizer = () =>
+export const handler = handle(
   auth.authorizer({
     providers: {
-      gmail: GoogleAdapter({
+      google: GoogleAdapter({
         clientID: Resource.GoogleClientId.value,
         mode: "oidc",
       }),
@@ -50,14 +42,14 @@ const authorizer = () =>
         },
       }),
     },
-    session,
+    session: sessions,
     callbacks: {
       auth: {
         async allowClient(cId, redirect, req) {
           return ["gmail"].includes(cId);
         },
         async success(ctx, input, req) {
-          if (input.provider === "gmail") {
+          if (input.provider === "google") {
             const claims = input.tokenset.claims();
             const email = claims.email;
             const name = claims.preferred_username ?? claims.name;
@@ -102,10 +94,5 @@ const authorizer = () =>
         },
       },
     },
-  });
-
-export default {
-  fetch(event: any, ctx: any) {
-    return authorizer().fetch(event, ctx);
-  },
-};
+  }),
+);

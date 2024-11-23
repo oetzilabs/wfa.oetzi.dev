@@ -10,6 +10,7 @@ const { default: mdx } = pkg;
 export default defineConfig({
   server: {
     preset: "aws-lambda",
+    compatibilityDate: "2024-11-23",
     esbuild: {
       options: {
         target: "esnext",

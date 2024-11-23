@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { applications } from "../drizzle/sql/schemas/applications";
@@ -98,5 +98,18 @@ export module Applications {
       throw isValid.issues;
     }
     return tsx.delete(applications).where(eq(applications.id, isValid.output)).returning();
+  };
+
+  export const lastCreatedByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+    return tsx
+      .select({ id: applications.id })
+      .from(applications)
+      .where(eq(applications.owner_id, isValid.output))
+      .orderBy(desc(applications.createdAt))
+      .limit(1);
   };
 }
