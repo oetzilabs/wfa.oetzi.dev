@@ -1,7 +1,7 @@
 import { language, setLanguage } from "@/components/stores/Language";
 import { Combobox, ComboboxContent, ComboboxItem, ComboboxTrigger } from "@/components/ui/combobox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCurrencies, getLanguage, setPreferedCurrency } from "@/lib/api/application";
+import { getLanguage } from "@/lib/api/application";
 import { getAuthenticatedSession, getAuthenticatedSessions, logoutSession } from "@/lib/auth/util";
 import { createAsync, revalidate, RouteDefinition, useAction, useSearchParams, useSubmission } from "@solidjs/router";
 import dayjs from "dayjs";
@@ -9,10 +9,11 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Languages from "lucide-solid/icons/languages";
 import Loader2 from "lucide-solid/icons/loader-2";
-import { createMemo, createSignal, For, Show, Suspense } from "solid-js";
+import { createMemo, createSignal, ErrorBoundary, For, Show, Suspense } from "solid-js";
 import { toast } from "solid-sonner";
 import { Badge } from "../../../../components/ui/badge";
 import { Button } from "../../../../components/ui/button";
+import { UserAgentDisplay } from "../../../../components/UserAgentDisplay";
 
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
@@ -36,53 +37,6 @@ const LANGUAGES = [
   },
 ];
 
-const UserAgentDisplay = (props: { userAgent: string }) => {
-  const browserMatchers = [
-    { name: "Chrome", regex: /Chrome\/([\d.]+)/ },
-    { name: "Firefox", regex: /Firefox\/([\d.]+)/ },
-    { name: "Safari", regex: /Version\/([\d.]+).*Safari/ },
-    { name: "Edge", regex: /Edg\/([\d.]+)/ },
-    { name: "Opera", regex: /OPR\/([\d.]+)/ },
-  ];
-
-  const osMatchers = [
-    { name: "Windows", regex: /Windows NT ([\d.]+)/ },
-    { name: "macOS", regex: /Mac OS X ([\d_]+)/ },
-    { name: "Linux", regex: /Linux/ },
-    { name: "Android", regex: /Android ([\d.]+)/ },
-    { name: "iOS", regex: /iPhone OS ([\d_]+)/ },
-  ];
-  const formatUserAgent = createMemo(() => {
-    const userAgent = props.userAgent;
-
-    let browser = "Unknown Browser";
-    let browserVersion = "";
-    for (const { name, regex } of browserMatchers) {
-      const match = userAgent.match(regex);
-      if (match) {
-        browser = name;
-        browserVersion = match[1].replace(/_/g, ".");
-        break;
-      }
-    }
-
-    let os = "Unknown OS";
-    let osVersion = "";
-    for (const { name, regex } of osMatchers) {
-      const match = userAgent.match(regex);
-      if (match) {
-        os = name;
-        osVersion = match[1]?.replace(/_/g, ".") || "";
-        break;
-      }
-    }
-
-    return `${browser} ${browserVersion} on ${os} ${osVersion}`.trim();
-  });
-
-  return <span>{formatUserAgent()}</span>;
-};
-
 export default function Settings() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
   const sessions = createAsync(() => getAuthenticatedSessions(), { deferStream: true });
@@ -93,9 +47,6 @@ export default function Settings() {
   const currentTab = () => (searchParams.tab as string | undefined) ?? "account";
 
   const [loading, setLoading] = createSignal(false);
-
-  const setPreferedCurrencyAction = useAction(setPreferedCurrency);
-  const setPreferedCurrencyStatus = useSubmission(setPreferedCurrency);
 
   return (
     <div class="w-full flex flex-col gap-2 h-full grow py-4 lg:pt-0">
@@ -117,16 +68,16 @@ export default function Settings() {
               orientation="vertical"
               class="w-full h-full grow gap-2"
             >
-              <TabsList class="min-w-[200px] w-fit h-full gap-0 rounded-none">
+              <TabsList class="min-w-[200px] w-fit h-full gap-1 rounded-none">
                 <TabsTrigger
                   value="account"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 h-auto"
+                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 px-4 h-auto"
                 >
                   Account
                 </TabsTrigger>
                 <TabsTrigger
                   value="sessions"
-                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 h-auto"
+                  class="text-left items-start justify-start data-[selected]:font-bold data-[selected]:bg-black data-[selected]:text-white dark:data-[selected]:bg-neutral-700 dark:data-[selected]:text-white rounded-sm py-2 px-4 h-auto"
                 >
                   Sessions
                 </TabsTrigger>
@@ -177,7 +128,7 @@ export default function Settings() {
                                       {dayjs(s.createdAt).format("LLLL")}
                                     </div>
                                     <Show when={currentSession().id === s.id}>
-                                      <Badge class="flex flex-row gap-2 items-center text-sm uppercase">current</Badge>
+                                      <Badge class="text-xs">current</Badge>
                                     </Show>
                                   </div>
                                   <div class="flex flex-row gap-2 items-center text-xs">
@@ -189,9 +140,14 @@ export default function Settings() {
                                     </time>
                                   </div>
                                   <div class="flex flex-col gap-2 items-start text-sm w-full">
-                                    <Show when={s.browser}>
-                                      {(browser) => <UserAgentDisplay userAgent={browser()} />}
-                                    </Show>
+                                    {/* <ErrorBoundary fallback={<div class="flex flex-row gap-2">Unknown Browser</div>}>
+                                      <Suspense fallback="Loading...">
+                                        <Show when={s.browser} fallback="Couldnt detect browser">
+                                          {(browser) => <UserAgentDisplay userAgent={browser()} />}
+                                        </Show>
+                                      </Suspense>
+                                    </ErrorBoundary> */}
+                                    {s.browser ?? "Unknown Browser"}
                                     <span>IP: {s.ip}</span>
                                     <span>Fingerprint: {s.fingerprint}</span>
                                   </div>

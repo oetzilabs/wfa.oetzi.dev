@@ -20,7 +20,6 @@ import { ErrorBoundary, Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { Toaster } from "solid-sonner";
 import "./app.css";
-import { ClientIdProvider } from "./components/ClientId";
 import { Realtime } from "./components/Realtime";
 import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";

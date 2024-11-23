@@ -38,6 +38,7 @@ export type RealtimeProps = {
   endpoint: string;
   authorizer: string;
   topic: string;
+  disabled?: boolean;
 };
 
 const globalEmitter = createGlobalEmitter<Realtimed.Events>(); // Create a global event emitter
@@ -53,6 +54,7 @@ export const Realtime = (props: RealtimeProps) => {
       console.log("RealtimeContext: realtime is not available on the server");
       return;
     }
+    if (props.disabled) return;
 
     const s = session();
     if (!s) return;

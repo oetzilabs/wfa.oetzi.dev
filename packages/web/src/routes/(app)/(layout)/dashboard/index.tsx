@@ -78,10 +78,10 @@ export default function DashboardPage() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   return (
-    <div class="w-full grow flex flex-col">
+    <div class="w-full grow flex flex-col h-full">
       <Suspense
         fallback={
-          <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+          <div class="flex flex-col w-full h-full grow items-center justify-center">
             <Loader2 class="size-4 animate-spin" />
           </div>
         }
@@ -89,15 +89,15 @@ export default function DashboardPage() {
         <Show when={session() && session()}>
           {(s) => (
             <Show
-              when={s().company}
+              when={s().organizations.length > 0 && s().organization}
               fallback={
-                <div class="flex flex-col w-full py-4 gap-4">
-                  <div class="flex flex-col w-full items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-200 dark:bg-neutral-800">
-                    <span class="text-sm">You currently have no organizations.</span>
+                <div class="flex flex-col w-full grow h-full gap-4 p-1 items-center justify-center">
+                  <div class="flex flex-col w-1/4 items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-100 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-900">
+                    <span class="text-sm">You currently have no organization.</span>
                     <span class="text-sm">
                       Please{" "}
-                      <A href="/dashboard/organizations/add" class="hover:underline text-blue-500 font-medium">
-                        create/join an organization
+                      <A href="/dashboard/organizations/create" class="hover:underline text-blue-500 font-medium">
+                        create an organization
                       </A>{" "}
                       to view your dashboard
                     </span>
@@ -106,12 +106,11 @@ export default function DashboardPage() {
               }
             >
               {(c) => (
-                <div class="flex flex-col w-full gap-0 grow relative py-4">
+                <div class="flex flex-col w-full gap-0 grow relative p-1">
                   <div class="flex flex-col w-full gap-3 p-6 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
                     <h2 class="text-lg font-bold leading-none">{c().name}</h2>
                     <div class="flex flex-row items-center gap-2">
                       <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
-                      <span class="text-sm font-medium text-muted-foreground">({c().phoneNumber})</span>
                     </div>
                   </div>
                   <div class="flex flex-col w-full py-4 gap-4 grow">

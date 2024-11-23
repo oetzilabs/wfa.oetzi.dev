@@ -11,7 +11,7 @@ export default function NavLink(props: AnchorProps & { exact?: boolean }) {
   return (
     <A
       class={cn(
-        "flex flex-col items-start gap-2 p-4 py-3 rounded-sm text-sm w-full select-none leading-none hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        "flex flex-col items-start gap-2 p-3 rounded-sm text-sm w-full select-none leading-none hover:bg-neutral-100 dark:hover:bg-neutral-800",
         {
           "bg-neutral-100 dark:bg-neutral-900": isActive(),
         },
