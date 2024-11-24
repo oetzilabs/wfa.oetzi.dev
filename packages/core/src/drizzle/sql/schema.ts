@@ -6,6 +6,7 @@ export * from "./schemas/mailcomplaint";
 export * from "./schemas/users";
 export * from "./schemas/sessions";
 
+export * from "./schemas/folders";
 export * from "./schemas/documents";
 
 export * from "./schemas/applications";

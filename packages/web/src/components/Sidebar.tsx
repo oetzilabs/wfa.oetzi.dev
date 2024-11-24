@@ -11,7 +11,7 @@ export default function Sidebar() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
 
   return (
-    <div class="flex flex-col w-[300px] h-full grow">
+    <div class="flex flex-col w-[250px] h-full grow">
       <div class="flex flex-col grow w-full h-full">
         <nav class="flex flex-col w-full border-r border-neutral-200 dark:border-neutral-800 grow h-full">
           <div class="flex flex-col w-full items-center h-full grow p-1 gap-1">

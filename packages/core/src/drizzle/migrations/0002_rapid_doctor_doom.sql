@@ -1,1 +1,0 @@
-ALTER TABLE "workflowautomation"."session" ADD COLUMN "fingerprint" text;

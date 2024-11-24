@@ -52,7 +52,7 @@ export default function LoginPage() {
   let formRef: HTMLFormElement;
 
   return (
-    <div class="h-full grow flex flex-col">
+    <div class="h-screen grow flex flex-col">
       <div class="w-full h-full flex flex-col grow bg-gradient-to-r from-neutral-950 to-neutral-50">
         <div class="w-full relative flex h-full flex-col items-center justify-center lg:grid lg:max-w-none lg:grid-cols-12 lg:px-0 ">
           <div class="relative hidden h-full flex-col text-white p-10 lg:flex flex-1 col-span-8">

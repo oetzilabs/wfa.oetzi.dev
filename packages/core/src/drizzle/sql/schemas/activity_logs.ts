@@ -4,6 +4,7 @@ import { applications } from "./applications";
 import { commonTable } from "./entity";
 import { steps } from "./steps";
 import { tasks } from "./tasks";
+import { users } from "./users";
 import { schema } from "./utils";
 import { workflows } from "./workflows";
 
@@ -25,6 +26,10 @@ export const activity_logs = commonTable(
   "activity_logs",
   (t) => ({
     previous_activity_log_id: t.text("previous_activity_log_id").references((): AnyPgColumn => activity_logs.id),
+    run_by_user_id: t
+      .text("run_by_user_id")
+      .notNull()
+      .references(() => users.id),
     application_id: t
       .text("application_id")
       .notNull()
@@ -56,13 +61,17 @@ export const activity_logs = commonTable(
     duration: t.integer("duration").default(0),
     output: t.jsonb("output").default(null),
   }),
-  "al",
+  "al"
 );
 
 export const activity_logs_relation = relations(activity_logs, ({ one }) => ({
   previous_activity_log: one(activity_logs, {
     fields: [activity_logs.previous_activity_log_id],
     references: [activity_logs.id],
+  }),
+  run_by: one(users, {
+    fields: [activity_logs.run_by_user_id],
+    references: [users.id],
   }),
   application: one(applications, {
     fields: [activity_logs.id],

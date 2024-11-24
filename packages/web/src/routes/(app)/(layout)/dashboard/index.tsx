@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils";
 import { A, createAsync, RouteDefinition } from "@solidjs/router";
 import { type LucideProps } from "lucide-solid";
 import Box from "lucide-solid/icons/box";
+import Plus from "lucide-solid/icons/plus";
 import FileCheck from "lucide-solid/icons/file-check";
 import FileX from "lucide-solid/icons/file-x";
 import Files from "lucide-solid/icons/files";
 import Loader2 from "lucide-solid/icons/loader-2";
 import TrendingUp from "lucide-solid/icons/trending-up";
 import { For, JSX, Show, Suspense } from "solid-js";
+import { Button } from "~/components/ui/button";
 
 export const route = {
   preload: async () => {
@@ -92,14 +94,13 @@ export default function DashboardPage() {
               when={s().organizations.length > 0 && s().organization}
               fallback={
                 <div class="flex flex-col w-full grow h-full gap-4 p-1 items-center justify-center">
-                  <div class="flex flex-col w-1/4 items-center justify-center rounded-md px-4 py-20 gap-2 bg-neutral-100 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-900">
+                  <div class="flex flex-col w-1/4 items-center justify-center rounded-md px-4 py-20 gap-4 bg-neutral-100 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-900">
                     <span class="text-sm">You currently have no organization.</span>
                     <span class="text-sm">
-                      Please{" "}
-                      <A href="/dashboard/organizations/create" class="hover:underline text-blue-500 font-medium">
-                        create an organization
-                      </A>{" "}
-                      to view your dashboard
+                      <Button as={A} href="/dashboard/organizations/create" size="sm" class="flex flex-row gap-2 leading-none">
+                        <Plus class="size-4"/>
+                        Create an Organization
+                      </Button>{" "}
                     </span>
                   </div>
                 </div>

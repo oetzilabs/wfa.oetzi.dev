@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { applications } from "./applications";
 import { commonTable } from "./entity";
+import { folders } from "./folders";
 import { users } from "./users";
 import { schema } from "./utils";
 
@@ -14,6 +15,10 @@ export const documents = commonTable(
   (t) => ({
     filename: t.text("name").notNull(),
     filepath: t.text("filepath").notNull(),
+    folder_id: t
+      .text("folder_id")
+      .notNull()
+      .references(() => folders.id),
     hash: t.text("hash"),
     status: document_status("status").default("uploaded"),
 
@@ -28,7 +33,7 @@ export const documents = commonTable(
         onDelete: "cascade",
       }),
   }),
-  "doc",
+  "doc"
 );
 
 export const document_relation = relations(documents, ({ one }) => ({
@@ -39,5 +44,9 @@ export const document_relation = relations(documents, ({ one }) => ({
   app: one(applications, {
     fields: [documents.app_id],
     references: [applications.id],
+  }),
+  folder: one(folders, {
+    fields: [documents.folder_id],
+    references: [folders.id],
   }),
 }));
