@@ -15,7 +15,7 @@ export const workflows = commonTable(
         onDelete: "cascade",
       }),
   }),
-  "wf"
+  "wf",
 );
 
 export const workflow_relation = relations(workflows, ({ one, many }) => ({

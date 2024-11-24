@@ -4,7 +4,10 @@ import { Validator } from "../../../validator";
 import { applications } from "./applications";
 import { commonTable } from "./entity";
 import { sessions } from "./sessions";
+import { steps } from "./steps";
+import { tasks } from "./tasks";
 import { user_organizations } from "./user_organizations";
+import { workflows } from "./workflows";
 
 export const users = commonTable(
   "users",
@@ -24,6 +27,9 @@ export const userRelation = relations(users, ({ many }) => ({
   sessions: many(sessions),
   orgs: many(user_organizations),
   applcations: many(applications),
+  workflows: many(workflows),
+  steps: many(steps),
+  tasks: many(tasks),
 }));
 
 export type UserSelect = typeof users.$inferSelect;

@@ -44,3 +44,13 @@ export function commonTable<
     extraConfig,
   );
 }
+
+export function createToken(length = 8) {
+  // create a random alphanumeric string but remove the letters i, o, and l to avoid confusion with 1, 0, and L. we are going to uppercase the result anyway.
+  let token = "";
+  do {
+    token = Math.random().toString(36).replaceAll(/[iol]/g, "").slice(0, length).toUpperCase();
+  } while (token.length < length);
+
+  return token;
+}

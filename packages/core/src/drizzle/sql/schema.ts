@@ -15,6 +15,7 @@ export * from "./schemas/workflows_steps";
 export * from "./schemas/steps";
 export * from "./schemas/steps_tasks";
 export * from "./schemas/tasks";
+export * from "./schemas/activity_logs";
 
 export * from "./schemas/verifications";
 
@@ -22,7 +23,6 @@ export * from "./schemas/organizations";
 export * from "./schemas/user_organizations";
 
 export * from "./schemas/customer_payments";
-
 
 export * from "./schemas/roles";
 
