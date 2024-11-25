@@ -1,12 +1,13 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Applications } from "@wfa/core/src/entities/application";
+import { Workflows } from "@wfa/core/src/entities/workflows";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { App, Env } from "../app";
 import { AuthorizationHeader } from "../middleware/authentication";
-import { WorkflowRoute } from "./workflows";
+import { StepRoute } from "./steps";
 
-export module ApplicationRoute {
+export module WorkflowRoute {
   const main_route = createRoute({
     security: [
       {
@@ -14,7 +15,7 @@ export module ApplicationRoute {
       },
     ],
     method: "get",
-    path: "/{aid}",
+    path: "/{wid}",
     request: {
       params: z.object({
         aid: Validator.prefixed_cuid2.openapi({
@@ -23,6 +24,13 @@ export module ApplicationRoute {
             in: "path",
           },
           example: "app_nc6bzmkmd014706rfda898to",
+        }),
+        wid: Validator.prefixed_cuid2.openapi({
+          param: {
+            name: "wid",
+            in: "path",
+          },
+          example: "wf_nc6bzmkmd014706rfda898to",
         }),
       }),
       headers: z.object({
@@ -36,13 +44,13 @@ export module ApplicationRoute {
             schema: z
               .object({
                 id: z.string().openapi({
-                  example: "app_nc6bzmkmd014706rfda898to",
+                  example: "wf_nc6bzmkmd014706rfda898to",
                 }),
               })
-              .openapi("Application"),
+              .openapi("Workflow"),
           },
         },
-        description: "Retrieve an application",
+        description: "Retrieve an workflow",
       },
       [StatusCodes.NOT_FOUND]: {
         content: {
@@ -50,13 +58,13 @@ export module ApplicationRoute {
             schema: z
               .object({
                 error: z.string().openapi({
-                  example: "Application not found",
+                  examples: ["Workflows not found", "Application not found"],
                 }),
               })
-              .openapi("ApplicationNotFoundError"),
+              .openapi("ApplicationWorkflowNotFoundError"),
           },
         },
-        description: "Application not found",
+        description: "Application or Workflow not found",
       },
       [StatusCodes.UNAUTHORIZED]: {
         description: "Unauthorized",
@@ -71,18 +79,22 @@ export module ApplicationRoute {
     return app
       .openapi(main_route, async (c) => {
         // console.log("calling application route");
-        const { aid } = c.req.valid("param");
+        const { wid, aid } = c.req.valid("param");
         const application = await Applications.findById(aid);
         if (!application) {
           return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
         }
+        const workflow = await Workflows.findById(wid);
+        if (!workflow) {
+          return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
+        }
         return c.json(
           {
-            id: application.id,
+            id: workflow.id,
           },
           StatusCodes.OK
         );
       })
-      .route("/{aid}/workflows", WorkflowRoute.create());
+      .route("/{aid}/workflows/{wid}/steps", StepRoute.create());
   };
 }

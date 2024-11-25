@@ -5,7 +5,6 @@ import { StatusCodes } from "http-status-codes";
 import { onError } from "./errors";
 import { ApplicationRoute } from "./routes/applications";
 import { DocumentRoute } from "./routes/documents";
-import { ExecutorRoute } from "./routes/executor";
 import { SessionRoute } from "./routes/session";
 import { TestRoute } from "./routes/test";
 import { UserRoute } from "./routes/users";
@@ -16,10 +15,12 @@ export type Env = {
 
 export const createApp = () => {
   let app = new OpenAPIHono<Env>();
+
   app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
     type: "http",
     scheme: "bearer",
   });
+
   app
     .use(logger(), async (c, next) => {
       c.header("Cache-Control", "no-store");
@@ -31,9 +32,9 @@ export const createApp = () => {
     .route("/applications", ApplicationRoute.create())
     .route("/documents", DocumentRoute.create())
     .route("/session", SessionRoute.create())
-    .route("/custom-task", ExecutorRoute.create())
     .onError(onError)
     .get("/ui", swaggerUI({ url: "/doc" }));
+
   app.doc31("/doc", () => ({
     openapi: "3.1.0",
     info: {
@@ -41,6 +42,7 @@ export const createApp = () => {
       title: "Open API for Workflow Automation",
     },
   }));
+
   return app;
 };
 
