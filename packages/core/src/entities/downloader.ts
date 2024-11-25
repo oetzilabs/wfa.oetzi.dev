@@ -12,4 +12,14 @@ export module Downloader {
     }
     return VFS.getFileAsBuffer(fileVFS, from);
   };
+  export const getFolder = async (
+    folderpath: string,
+    from: VFS.From = { type: "r2", bucket: Resource.MainCloudflareStorage },
+  ) => {
+    const parsed_folder_path = VFS.parseFolderPath(folderpath);
+    if (!parsed_folder_path) {
+      throw new Error("Folder not found");
+    }
+    return VFS.getFolder(parsed_folder_path, from);
+  };
 }

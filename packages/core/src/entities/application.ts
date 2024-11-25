@@ -105,11 +105,12 @@ export module Applications {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx
-      .select({ id: applications.id })
-      .from(applications)
-      .where(eq(applications.owner_id, isValid.output))
-      .orderBy(desc(applications.createdAt))
-      .limit(1);
+    return tsx.query.applications.findFirst({
+      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
+      orderBy: [desc(applications.createdAt)],
+      with: {
+        ...Applications._with,
+      },
+    });
   };
 }

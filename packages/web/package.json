@@ -33,7 +33,7 @@
     "@kobalte/core": "0.13.7",
     "@kobalte/tailwindcss": "0.9.0",
     "@kobalte/utils": "0.9.1",
-    "@modular-forms/solid": "^0.24.1",
+    "@modular-forms/solid": "^0.25.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@solid-devtools/overlay": "^0.30.1",

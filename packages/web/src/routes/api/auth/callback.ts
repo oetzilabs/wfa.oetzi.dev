@@ -64,7 +64,7 @@ export async function GET(e: APIEvent) {
 
   const session = await Auth.createSession(sessionToken, {
     userId: sessionResponse.id,
-    company_id: sessionResponse.company_id,
+    application_id: sessionResponse.application_id,
     organization_id: sessionResponse.organization_id,
     browser: e.request.headers.get("user-agent") ?? "unknown",
     ip: finalIp ?? "unknown",

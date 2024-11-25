@@ -9,6 +9,7 @@ import { schema } from "./utils";
 import { workflows } from "./workflows";
 
 export const activity_status = schema.enum("activity_enums", [
+  "preparing_environment",
   "idle",
   "running",
   "success",
@@ -61,7 +62,7 @@ export const activity_logs = commonTable(
     duration: t.integer("duration").default(0),
     output: t.jsonb("output").default(null),
   }),
-  "al"
+  "al",
 );
 
 export const activity_logs_relation = relations(activity_logs, ({ one }) => ({

@@ -18,7 +18,7 @@ import { Validator } from "../validator";
 
 export module Organizations {
   export const CreateSchema = strictObject({
-    ownerId: optional(nullable(Validator.Cuid2Schema)),
+    owner_id: Validator.Cuid2Schema,
     name: string(),
     email: string(),
     phoneNumber: optional(nullable(string())),

@@ -20,6 +20,7 @@ import { Validator } from "../validator";
 export module ActivityLogs {
   export const CreateSchema = strictObject({
     previous_activity_log_id: optional(nullable(string())),
+    run_by_user_id: Validator.Cuid2Schema,
     application_id: Validator.Cuid2Schema,
     workflow_id: Validator.Cuid2Schema,
     step_id: Validator.Cuid2Schema,

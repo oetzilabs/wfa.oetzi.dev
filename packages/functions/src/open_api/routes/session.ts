@@ -1,4 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { Applications } from "@wfa/core/src/entities/application";
+import { Organizations } from "@wfa/core/src/entities/organizations";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { getApplication, getUser } from "../../utils";
@@ -76,6 +78,12 @@ export module SessionRoute {
                 id: Validator.prefixed_cuid2.openapi({
                   example: "user_nc6bzmkmd014706rfda898to",
                 }),
+                organization_id: z.string().nullable().openapi({
+                  example: "org_nc6bzmkmd014706rfda898to",
+                }),
+                application_id: z.string().nullable().openapi({
+                  example: "app_nc6bzmkmd014706rfda898to",
+                }),
               })
               .openapi("UserSession"),
           },
@@ -115,9 +123,14 @@ export module SessionRoute {
           if (!user) {
             return c.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
           }
+          const lastCreatedOrganization = await Organizations.lastCreatedByUserId(user.id);
+          const lastCreatedApplication = await Applications.lastCreatedByUserId(user.id);
+
           return c.json(
             {
               id: user.id,
+              organization_id: lastCreatedOrganization?.id ?? null,
+              application_id: lastCreatedApplication?.id ?? null,
             },
             StatusCodes.OK,
           );

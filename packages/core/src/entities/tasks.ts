@@ -1,8 +1,15 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { tasks } from "../drizzle/sql/schemas/tasks";
 import { Validator } from "../validator";
+import { ActivityLogs } from "./activity_logs";
+import { Downloader } from "./downloader";
+import { Executor } from "./executor";
+import { Users } from "./users";
+import { VFS } from "./vfs";
 
 export module Tasks {
   export const CreateSchema = strictObject({
@@ -119,5 +126,126 @@ export module Tasks {
       .where(eq(tasks.owner_id, isValid.output))
       .orderBy(desc(tasks.createdAt))
       .limit(1);
+  };
+
+  export const EnvironmentSchema = strictObject({
+    application_id: Validator.Cuid2Schema,
+    workflow_id: Validator.Cuid2Schema,
+    steps_id: Validator.Cuid2Schema,
+    task_id: Validator.Cuid2Schema,
+    previous: optional(Validator.Cuid2Schema),
+  });
+
+  export const getEnvironment = async (
+    taskId: InferInput<typeof Validator.Cuid2Schema>,
+    environment: InferInput<typeof EnvironmentSchema>,
+    from: VFS.From,
+    tsx = db,
+  ) => {
+    const is_valid_task_id = safeParse(Validator.Cuid2Schema, taskId);
+    if (!is_valid_task_id.success) {
+      throw is_valid_task_id.issues;
+    }
+    const is_valid_environment = safeParse(EnvironmentSchema, environment);
+    if (!is_valid_environment.success) {
+      throw is_valid_environment.issues;
+    }
+    const task = await Tasks.findById(is_valid_task_id.output, tsx);
+    if (!task) {
+      throw new Error("Task not found");
+    }
+    const path = [environment.application_id, environment.workflow_id, environment.steps_id, environment.task_id].join(
+      "/",
+    );
+    return Downloader.getFolder(`v0.0.1/${path}`, from);
+  };
+
+  export const loadScript = async (
+    env: Awaited<ReturnType<typeof Tasks.getEnvironment>>,
+    from: VFS.From,
+  ): Promise<Executor.ScriptRunner> => {
+    let script: string = "";
+    const scriptPath = "/scripts/main.js";
+    const hasScriptPath = await VFS.exists(scriptPath, env);
+    if (!hasScriptPath) {
+      throw new Error("Script not found");
+    }
+    const scriptFile = await VFS.getFileAsBuffer(scriptPath, from);
+    if (!scriptFile) {
+      throw new Error("Script not found");
+    }
+    script = scriptFile.toString();
+    return {
+      script,
+      scriptPath,
+    };
+  };
+
+  export const prepareEnvironment = async <SR extends Executor.ScriptRunner>(
+    user: Users.Info,
+    environment: InferInput<typeof EnvironmentSchema>,
+    scriptRunner: SR,
+    taskFolder: Awaited<ReturnType<typeof VFS.getFolder>>,
+    home: Executor.PreparedEnvironment["home"] = Executor.DEFAULT_HOME,
+    options: Partial<Executor.PreparedEnvironmentOptions> = Executor.DEFAULT_OPTIONS,
+  ): Promise<Executor.PreparedEnvironment> => {
+    const activity_log = await ActivityLogs.create({
+      run_by_user_id: user.id,
+      application_id: environment.application_id,
+      workflow_id: environment.workflow_id,
+      step_id: environment.steps_id,
+      task_id: environment.task_id,
+      previous_activity_log_id: environment.previous,
+      status: "preparing_environment",
+    });
+
+    if (!activity_log) throw new Error("Could not create environment, activity log could not be created");
+    const script = scriptRunner.script;
+    const scriptPath = scriptRunner.scriptPath;
+    // make a folder for the environemnt to live in
+    const environmentPath = `/environments/${activity_log.id}`;
+
+    try {
+      await mkdir(environmentPath, { recursive: true });
+      // copy the files to the folder
+      await copyFiles(environmentPath, taskFolder, [
+        {
+          path: scriptPath,
+        },
+      ]);
+    } catch (e) {
+      throw new Error("Could not create environment, could not create folder");
+    }
+
+    return {
+      id: activity_log.id,
+      environmentPath,
+      scriptRunner,
+      home,
+      memory: options.memory,
+      timeout: options.timeout,
+    };
+  };
+
+  const copyFiles = async <P extends string, IP extends { path: string }>(
+    environmentPath: string,
+    folder: VFS.VFSFolder<P>,
+    ignorePaths: IP[] = [],
+  ) => {
+    for (const entity of folder.contents) {
+      if (entity.type === "file" && ignorePaths.some((ignorePath) => entity.path.startsWith(ignorePath.path))) {
+        continue;
+      }
+      try {
+        if (entity.type === "folder") {
+          await mkdir(environmentPath + entity.path, { recursive: true });
+          await copyFiles(environmentPath + entity.path, entity);
+          continue;
+        }
+        await writeFile(environmentPath + entity.path, entity.contents);
+      } catch (e) {
+        throw new Error("Could not create environment, could not copy files");
+      }
+    }
   };
 }

@@ -11,7 +11,7 @@ export const getStatistics = query(async () => {
     documents: {
       value: 0,
       priority: 2,
-      description: "All the rides you have done",
+      description: "All the documents you have uploaded",
     },
     completed: {
       value: 0,

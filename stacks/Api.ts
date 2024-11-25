@@ -29,4 +29,7 @@ hono_open_api_aws.route("$default", {
   link: [...allSecrets, auth, mainAWSStorage, mainCloudflareStorage],
   url: true,
   copyFiles,
+  nodejs: {
+    install: ["isolated-vm", "pg"],
+  },
 });

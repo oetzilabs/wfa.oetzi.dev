@@ -1,8 +1,4 @@
-import type {
-  SessionSelect as Session,
-  SessionInsert,
-  UserSelect as User,
-} from "@wfa/core/src/drizzle/sql/schema";
+import type { SessionSelect as Session, SessionInsert, UserSelect as User } from "@wfa/core/src/drizzle/sql/schema";
 import type { H3Event } from "vinxi/http";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";

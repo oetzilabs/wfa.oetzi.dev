@@ -23,6 +23,7 @@ import "./app.css";
 import { Realtime } from "./components/Realtime";
 import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
+import "@fontsource/geist-mono";
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;

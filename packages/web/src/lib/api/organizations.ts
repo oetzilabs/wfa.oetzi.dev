@@ -6,31 +6,33 @@ import { Auth } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
 import { getAuthenticatedSession } from "../auth/util";
 
-export const createOrganization = action(async (name: string, phoneNumber: string, email: string) => {
-  "use server";
-  const [ctx, event] = await ensureAuthenticated();
+export const createOrganization = action(
+  async (data: Omit<InferInput<typeof Organizations.CreateSchema>, "owner_id">) => {
+    "use server";
+    const [ctx, event] = await ensureAuthenticated();
+    const _data = Object.assign(data, { owner_id: ctx.user.id });
+    const org = await Organizations.create(_data);
 
-  const org = await Organizations.create({ name, phoneNumber, email, ownerId: ctx.user.id });
+    const oldSession = ctx.session;
 
-  const oldSession = ctx.session;
+    // invalidate session
+    await Auth.invalidateSession(oldSession.id);
 
-  // invalidate session
-  await Auth.invalidateSession(oldSession.id);
+    const sessionToken = Auth.generateSessionToken();
 
-  const sessionToken = Auth.generateSessionToken();
+    const session = await Auth.createSession(sessionToken, {
+      ...oldSession,
+      organization_id: org.id,
+    });
 
-  const session = await Auth.createSession(sessionToken, {
-    ...oldSession,
-    organization_id: org.id,
-  });
+    Auth.setSessionCookie(event, sessionToken);
+    event.context.session = session;
 
-  Auth.setSessionCookie(event, sessionToken);
-  event.context.session = session;
-
-  throw redirect("/dashboard/organizations", {
-    revalidate: [getAuthenticatedSession.key],
-  });
-});
+    throw redirect("/dashboard", {
+      revalidate: [getAuthenticatedSession.key],
+    });
+  },
+);
 
 export const joinOrganization = action(async (name: string) => {
   "use server";
