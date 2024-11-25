@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
@@ -203,7 +203,7 @@ export module Tasks {
     const script = scriptRunner.script;
     const scriptPath = scriptRunner.scriptPath;
     // make a folder for the environemnt to live in
-    const environmentPath = `/environments/${activity_log.id}`;
+    const environmentPath = path.join("tmp", `/environments/${activity_log.id}`);
 
     try {
       await mkdir(environmentPath, { recursive: true });

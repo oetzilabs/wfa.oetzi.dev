@@ -1,3 +1,4 @@
+import { rm } from "node:fs/promises";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Executor } from "@wfa/core/src/entities/executor";
 import { Tasks } from "@wfa/core/src/entities/tasks";
@@ -233,7 +234,20 @@ export module ExecutorRoute {
             return c.json({ error: "Task environment failed to prepare" }, StatusCodes.FAILED_DEPENDENCY);
           }
           const input = c.req.valid("json");
-          const result = await Executor.run(prepared_activity_environment, input);
+          let result: Executor.ExecutionResult | null = null;
+          try {
+            result = await Executor.run(prepared_activity_environment, input);
+          } catch (error) {
+            if (error instanceof Executor.ExecutionError) {
+              return c.json({ error: error.message }, StatusCodes.INTERNAL_SERVER_ERROR);
+            }
+            if (error instanceof Executor.NotImplementetError) {
+              return c.json({ error: error.message }, StatusCodes.NOT_IMPLEMENTED);
+            }
+            return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
+          } finally {
+            await rm(prepared_activity_environment.environmentPath, { recursive: true });
+          }
           if (!result) {
             return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
           }

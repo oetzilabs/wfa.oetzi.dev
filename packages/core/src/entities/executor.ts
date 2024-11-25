@@ -85,6 +85,26 @@ export module Executor {
           const jail = context.global;
 
           await jail.set("input", input, { copy: true }); // Pass input data
+
+          const customProcess = new Proxy(
+            {
+              cwd: () => prepared_activity_environment.environmentPath,
+              env: {},
+            },
+            {
+              get(target, prop) {
+                if (prop in target) {
+                  // @ts-ignore
+                  return target[prop];
+                }
+                throw new Error(`Access to process.${prop.toString()} is not allowed`);
+              },
+            },
+          );
+
+          // Inject the custom process object
+          await jail.set("process", new ivm.Reference(customProcess), { copy: true });
+
           const result = await context.eval(prepared_activity_environment.scriptRunner.script, {
             timeout: merged_options.timeout,
             promise: true,
