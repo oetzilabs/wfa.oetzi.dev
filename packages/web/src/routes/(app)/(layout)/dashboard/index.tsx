@@ -6,9 +6,11 @@ import { getSystemNotifications } from "@/lib/api/system_notifications";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { A, createAsync, RouteDefinition } from "@solidjs/router";
 import { Button } from "~/components/ui/button";
+import dayjs from "dayjs";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
 import { Show, Suspense } from "solid-js";
+import { Badge } from "../../../../components/ui/badge";
 
 export const route = {
   preload: async () => {
@@ -31,7 +33,7 @@ export default function DashboardPage() {
           </div>
         }
       >
-        <Show when={session() && session()}>
+        <Show when={session() && session()!.user !== null && session()}>
           {(s) => (
             <Show
               when={s().organizations.length > 0 && s().organization}
@@ -55,11 +57,46 @@ export default function DashboardPage() {
               }
             >
               {(c) => (
-                <div class="flex flex-col w-full gap-2 grow relative p-2">
-                  <div class="flex flex-col w-full gap-3 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-sm border border-neutral-200 dark:border-neutral-800">
-                    <h2 class="text-lg font-bold leading-none">{c().name}</h2>
-                    <div class="flex flex-row items-center gap-2">
-                      <span class="text-sm font-medium text-muted-foreground">{c().email}</span>
+                <div class="flex flex-col w-full grow relative">
+                  <div class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 p-2 gap-2">
+                    <h2 class="text-2xl font-bold leading-none">
+                      Welcome {Math.abs(dayjs(s().createdAt).diff(dayjs(), "minutes")) > 5 ? "back" : ""} to {c().name}
+                    </h2>
+                    <div class="text-xs font-medium leading-none text-muted-foreground">
+                      <Show
+                        when={s().applications.length > 0 && s().application}
+                        fallback={
+                          <Show
+                            when={s().applications.length === 0}
+                            fallback={
+                              <span>
+                                Please{" "}
+                                <A href="/dashboard/applications" class="text-blue-500 font-bold hover:underline">
+                                  select an application
+                                </A>{" "}
+                                first.
+                              </span>
+                            }
+                          >
+                            <span>
+                              Please{" "}
+                              <A href="/dashboard/applications/create" class="text-blue-500 font-bold hover:underline">
+                                create an application
+                              </A>{" "}
+                              first.
+                            </span>
+                          </Show>
+                        }
+                      >
+                        {(app) => (
+                          <span class="flex flex-row gap-1 items-center">
+                            You are currently on
+                            <Badge variant="outline" class="px-1.5">
+                              {app().name}
+                            </Badge>
+                          </span>
+                        )}
+                      </Show>
                     </div>
                   </div>
                   <StorageStatistics />

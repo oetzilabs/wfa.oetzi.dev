@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { commonTable } from "./entity";
+import { commonTable, createToken } from "./entity";
 import { users } from "./users";
 
 export const applications = commonTable(
@@ -7,7 +7,10 @@ export const applications = commonTable(
   (t) => ({
     name: t.text("name").notNull(),
     description: t.text("description"),
-    token: t.text("token").notNull(),
+    token: t
+      .text("token")
+      .notNull()
+      .$defaultFn(() => createToken()),
     owner_id: t
       .text("owner_id")
       .notNull()

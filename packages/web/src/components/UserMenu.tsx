@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/lib/auth/util";
 import { A, useSubmission } from "@solidjs/router";
+import Cpu from "lucide-solid/icons/cpu";
 import Loader2 from "lucide-solid/icons/loader-2";
 import LogOut from "lucide-solid/icons/log-out";
+import Plus from "lucide-solid/icons/plus";
 import Settings from "lucide-solid/icons/settings";
 import User from "lucide-solid/icons/user";
-import { Match, Switch } from "solid-js";
+import { For, Match, Show, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
 
 export default function UserMenu(props: { user: UserSession["user"] }) {
@@ -44,6 +46,29 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
             <Settings class="size-4" />
             <span>Settings</span>
           </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between">
+            <span class="font-semibold">Applications</span>
+            <div class="">
+              <Button size="icon" class="size-6 p-1" variant="outline" as={A} href="/dashboard/applications/create">
+                <Plus class="size-4" />
+              </Button>
+            </div>
+          </DropdownMenuGroupLabel>
+          <Show when={props.user}>
+            {(user) => (
+              <For each={user().applications} fallback={<DropdownMenuItem disabled>No applications</DropdownMenuItem>}>
+                {(app) => (
+                  <DropdownMenuItem as={A} class="cursor-pointer" href={`/dashboard/applications/${app.id}`}>
+                    <Cpu class="size-4" />
+                    <span>{app.name}</span>
+                  </DropdownMenuItem>
+                )}
+              </For>
+            )}
+          </Show>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <form action={logout} method="post">

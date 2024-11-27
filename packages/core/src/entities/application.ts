@@ -7,7 +7,7 @@ import { Validator } from "../validator";
 export module Applications {
   export const CreateSchema = strictObject({
     name: string(),
-    token: string(),
+    token: optional(string()),
     owner_id: Validator.Cuid2Schema,
   });
 

@@ -32,6 +32,7 @@ export module Users {
         user: true,
       },
     },
+    applications: true,
 
     sessions: true,
   };
@@ -118,7 +119,7 @@ export module Users {
       if (!adminCompanyExists) {
         const adminCompany = await Organizations.create({
           email: "admin@wfa.oetzi.dev",
-          ownerId: adminUser!.id,
+          owner_id: adminUser!.id,
           name: "Taxi Kasse",
           phoneNumber: "123456789",
           website: "https://wfa.oetzi.dev",
@@ -144,7 +145,7 @@ export module Users {
       if (!testCompanyExists) {
         const testCompany = await Organizations.create({
           email: "testuser@wfa.oetzi.dev",
-          ownerId: testUser!.id,
+          owner_id: testUser!.id,
           name: "Test Company",
           phoneNumber: "123456789",
           website: "https://wfa.oetzi.dev",

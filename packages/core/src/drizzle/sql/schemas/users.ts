@@ -26,7 +26,7 @@ export const users = commonTable(
 export const userRelation = relations(users, ({ many }) => ({
   sessions: many(sessions),
   orgs: many(user_organizations),
-  applcations: many(applications),
+  applications: many(applications),
   workflows: many(workflows),
   steps: many(steps),
   tasks: many(tasks),

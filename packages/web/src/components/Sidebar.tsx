@@ -1,6 +1,6 @@
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { createAsync } from "@solidjs/router";
-import Boxes from "lucide-solid/icons/boxes";
+import Cpu from "lucide-solid/icons/cpu";
 import Files from "lucide-solid/icons/files";
 import Home from "lucide-solid/icons/home";
 import Settings from "lucide-solid/icons/settings";
@@ -23,7 +23,7 @@ export default function Sidebar() {
                     <span class="sr-only lg:not-sr-only">Dashboard</span>
                   </NavLink>
                   <NavLink href="/dashboard/applications">
-                    <Boxes class="size-4" />
+                    <Cpu class="size-4" />
                     <span class="sr-only lg:not-sr-only">Applications</span>
                   </NavLink>
                   <NavLink href="/dashboard/documents">

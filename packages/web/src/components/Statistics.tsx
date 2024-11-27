@@ -62,7 +62,7 @@ const Statistic = (props: {
 export function Statistics() {
   const stats = createAsync(() => getStatistics());
   return (
-    <div class="flex flex-col w-full gap-2 grow">
+    <div class="flex flex-col w-full gap-2 p-2 border-b border-neutral-200 dark:border-neutral-800">
       <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-sm overflow-clip">
         <Suspense
           fallback={
@@ -88,23 +88,6 @@ export function Statistics() {
             )}
           </Show>
         </Suspense>
-      </div>
-      <div class="flex flex-col-reverse xl:flex-row w-full gap-4 grow">
-        <Suspense
-          fallback={
-            <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
-              <Loader2 class="size-4 animate-spin" />
-            </div>
-          }
-        >
-          <div class=""></div>
-          {/* <Show when={rides() && rides()}>{(rs) => }</Show> */}
-        </Suspense>
-        <div class="gap-2 flex flex-col w-full xl:w-80 h-max">
-          {/* <Weather /> */}
-          {/* <Hotspots /> */}
-          {/* <Events /> */}
-        </div>
       </div>
     </div>
   );
