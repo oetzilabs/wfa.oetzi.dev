@@ -99,6 +99,10 @@ export const getApplicationById = async (id: InferInput<typeof Validator.Cuid2Sc
   if (!app) {
     throw redirect("/404", { status: 404 });
   }
+  const is_owner = app.owner.id === ctx.user.id;
+  if (!is_owner) {
+    throw redirect("/403", { status: 403, statusText: "You are not the owner of this application" });
+  }
   return app;
 };
 

@@ -6,74 +6,11 @@ import { VFS } from "@wfa/core/src/entities/vfs";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
-import { getUser } from "../../utils";
+import { ensureAuthenticated, getUser } from "../../utils";
 import { App, Env } from "../app";
 import { AuthorizationHeader } from "../middleware/authentication";
 
 export module ExecutorRoute {
-  const main_route = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
-    method: "get",
-    path: "/{task_id}",
-    request: {
-      params: z.object({
-        task_id: Validator.prefixed_cuid2.openapi({
-          param: {
-            name: "task_id",
-            in: "path",
-          },
-          example: "task_abc123xyz456",
-        }),
-      }),
-      headers: z.object({
-        authorization: AuthorizationHeader,
-      }),
-    },
-    responses: {
-      [StatusCodes.OK]: {
-        content: {
-          "application/json": {
-            schema: z
-              .object({
-                id: z.string().openapi({
-                  example: "task_abc123xyz456",
-                }),
-                name: z.string().openapi({
-                  example: "My Task",
-                }),
-                token: z.string().openapi({
-                  example: "12345678",
-                }),
-              })
-              .openapi("Task"),
-          },
-        },
-        description: "Retrieve a task",
-      },
-      [StatusCodes.NOT_FOUND]: {
-        content: {
-          "application/json": {
-            schema: z
-              .object({
-                error: z.string().openapi({
-                  example: "Task not found",
-                }),
-              })
-              .openapi("TaskNotFoundError"),
-          },
-        },
-        description: "Task not found",
-      },
-      [StatusCodes.UNAUTHORIZED]: {
-        description: "Unauthorized",
-      },
-    },
-  });
-
   const code_execution_route = createRoute({
     security: [
       {
@@ -81,7 +18,7 @@ export module ExecutorRoute {
       },
     ],
     method: "post",
-    path: "/{application_id}/{workflow_id}/{steps_id}/{task_id}/run",
+    path: "/",
     request: {
       params: z.object({
         application_id: Validator.prefixed_cuid2.openapi({
@@ -121,7 +58,7 @@ export module ExecutorRoute {
           "application/json": {
             schema: z.unknown().openapi({
               example: {
-                name: "John Doe",
+                testkev: "testvalue",
               },
             }),
           },
@@ -181,44 +118,27 @@ export module ExecutorRoute {
   export const create = () => {
     const app = new OpenAPIHono<Env>();
 
-    return app
-      .openapi(main_route, async (c) => {
-        const { task_id } = c.req.valid("param");
-        const task = await Tasks.findById(task_id);
-        if (!task) {
-          return c.json({ error: "Task not found" }, StatusCodes.NOT_FOUND);
-        }
+    return app.openapi(code_execution_route, async (c) => {
+      const params = c.req.valid("param");
+      const headers = c.req.valid("header");
+      const authed = await ensureAuthenticated(headers.authorization);
+      if (!authed.user || !authed.app) {
+        return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
+      }
+      const task = await Tasks.findById(params.task_id);
+      if (!task) {
+        return c.json({ error: "Task not found" }, StatusCodes.NOT_FOUND);
+      }
 
-        return c.json(
-          {
-            task_id: task.id,
-            name: task.name,
-            token: task.token,
-          },
-          StatusCodes.OK,
-        );
-      })
-      .openapi(code_execution_route, async (c) => {
-        const params = c.req.valid("param");
-        const headers = c.req.valid("header");
-        const user = await getUser(headers.authorization);
-        if (!user) {
-          return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
-        }
-        const task = await Tasks.findById(params.task_id);
-        if (!task) {
-          return c.json({ error: "Task not found" }, StatusCodes.NOT_FOUND);
-        }
+      const fromBucket: VFS.From = {
+        type: "r2",
+        // @ts-ignore
+        bucket: Resource.MainCloudflareStorage,
+      };
 
-        const fromBucket: VFS.From = {
-          type: "r2",
-          // @ts-ignore
-          bucket: Resource.MainCloudflareStorage,
-        };
-
-        if (task.custom) {
-          return c.json({ error: "Task is custom and cannot be executed" }, StatusCodes.NOT_IMPLEMENTED);
-          /*
+      if (task.custom) {
+        return c.json({ error: "Task is custom and cannot be executed" }, StatusCodes.NOT_IMPLEMENTED);
+        /*
           try {
             const taskFolder = await Tasks.getEnvironment(task.id, params, fromBucket);
             if (!taskFolder) {
@@ -272,12 +192,12 @@ export module ExecutorRoute {
             return c.json({ error: "Task failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
           }
             */
-        } else {
-          return c.json(
-            { error: "Task execution is not implemented yet. We are working on it!" },
-            StatusCodes.NOT_IMPLEMENTED,
-          );
-        }
-      });
+      } else {
+        return c.json(
+          { error: "Task execution is not implemented yet. We are working on it!" },
+          StatusCodes.NOT_IMPLEMENTED,
+        );
+      }
+    });
   };
 }

@@ -1,7 +1,4 @@
-import { OpenAPIHono, z } from "@hono/zod-openapi";
-import { Applications } from "@wfa/core/src/entities/application";
-import { Users } from "@wfa/core/src/entities/users";
-import { bearerAuth } from "hono/bearer-auth";
+import { z } from "@hono/zod-openapi";
 
 export const AuthenticationSchema = z.strictObject({
   type: z.enum(["app", "user"]),

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fallback, InferOutput, number, object, optional, picklist, safeParse } from "valibot";
+import { fallback, InferOutput, number, object, optional, picklist, safeParse, ValiError } from "valibot";
 
 export module Cfg {
   export const HOMES = ["aws", "cloudflare", "local"] as const;
@@ -41,7 +41,9 @@ export module Cfg {
      * @example const config = Configurator.load(".env");
      * @example const config = Configurator.load(".env.production");
      * @example const config = Configurator.load(".env", ["SOME_KEY"]);
+     * @example const config = Configurator.load({ home: "local", task_runnner_memory: 1024, task_runnner_timeout: 20_000 });
      * @throws {Error} If the configuration file does not exist.
+     * @throws {ValiError} If the configuration file/object is invalid.
      */
     public static load<T extends Config>(path?: string, ignore_keys: string[] = []): T {
       if (path === undefined) {
@@ -106,6 +108,14 @@ export module Cfg {
       }
       Configurator._cfg = final_obj;
       return final_obj;
+    }
+    public load<T extends Config>(obj: T): T {
+      const is_valid_config = safeParse(Cfg.ConfigSchema, obj);
+      if (!is_valid_config.success) {
+        throw is_valid_config.issues;
+      }
+      Configurator._cfg = obj;
+      return obj;
     }
 
     public static getConfig(): Config {

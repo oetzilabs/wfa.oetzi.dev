@@ -63,6 +63,50 @@ export const getApplication = async (token: string) => {
   return app;
 };
 
+export const ensureAuthenticated = async (token: string) => {
+  const splitToken = token.split(" ");
+  if (splitToken.length !== 2) throw new Error("Invalid token");
+  if (splitToken[0] !== "Bearer") throw new Error("Invalid token");
+  const typeToken = splitToken[1].split(":");
+  if (typeToken.length !== 2) throw new Error("Invalid token");
+  const isValid = AuthenticationSchema.safeParse({
+    type: typeToken[0],
+    token: typeToken[1],
+  });
+  if (!isValid.success) {
+    throw new Error("Invalid token");
+  }
+  switch (isValid.data.type) {
+    case "app": {
+      const session = await sessions.verify(isValid.data.token);
+      if (!session) throw new Error("No session found");
+      if (session.type !== "app") {
+        throw new Error("Invalid session type");
+      }
+      const { id } = session.properties;
+      if (!id) throw new Error("Invalid AppID in session");
+      const app = await Applications.findById(id);
+      if (!app) throw new Error("No application found");
+      return { app };
+    }
+    case "user": {
+      const session = await sessions.verify(isValid.data.token);
+      if (!session) throw new Error("No session found");
+      if (session.type !== "user") {
+        throw new Error("Invalid session type");
+      }
+      const { id } = session.properties;
+      if (!id) throw new Error("Invalid UserID in session");
+      const user = await Users.findById(id);
+      if (!user) throw new Error("No session found");
+      return { user };
+    }
+    default: {
+      throw new Error("Invalid token type");
+    }
+  }
+};
+
 export const json = (input: unknown, statusCode = StatusCodes.OK): APIGatewayProxyResultV2 => {
   return {
     statusCode,

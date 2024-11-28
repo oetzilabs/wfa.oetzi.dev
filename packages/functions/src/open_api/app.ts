@@ -32,8 +32,7 @@ export const createApp = () => {
     .route("/applications", ApplicationRoute.create())
     .route("/documents", DocumentRoute.create())
     .route("/session", SessionRoute.create())
-    .onError(onError)
-    .get("/ui", swaggerUI({ url: "/doc" }));
+    .onError(onError);
 
   app.doc31("/doc", () => ({
     openapi: "3.1.0",
@@ -42,6 +41,8 @@ export const createApp = () => {
       title: "Open API for Workflow Automation",
     },
   }));
+
+  app.get("/ui", swaggerUI({ url: "/doc" }));
 
   return app;
 };
