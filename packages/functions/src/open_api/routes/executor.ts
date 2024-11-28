@@ -1,13 +1,11 @@
-import { rm } from "node:fs/promises";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { Executor } from "@wfa/core/src/entities/executor";
+import { Cfg } from "@wfa/core/src/entities/configurator";
 import { Tasks } from "@wfa/core/src/entities/tasks";
-import { VFS } from "@wfa/core/src/entities/vfs";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { Resource } from "sst";
-import { ensureAuthenticated, getUser } from "../../utils";
-import { App, Env } from "../app";
+import { ensureAuthenticated } from "../../utils";
+import { Env } from "../app";
 import { AuthorizationHeader } from "../middleware/authentication";
 
 export module ExecutorRoute {
@@ -130,11 +128,7 @@ export module ExecutorRoute {
         return c.json({ error: "Task not found" }, StatusCodes.NOT_FOUND);
       }
 
-      const fromBucket: VFS.From = {
-        type: "r2",
-        // @ts-ignore
-        bucket: Resource.MainCloudflareStorage,
-      };
+      const storage = Cfg.Configurator.get("storage");
 
       if (task.custom) {
         return c.json({ error: "Task is custom and cannot be executed" }, StatusCodes.NOT_IMPLEMENTED);

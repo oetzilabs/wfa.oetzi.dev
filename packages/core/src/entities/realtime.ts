@@ -1,10 +1,6 @@
-import type { Events as EventsModule } from "./events";
 import type { Notifications } from "./notifications";
-import type { Orders } from "./orders";
-import type { Rides } from "./rides";
 import { IoTDataPlaneClient, PublishCommand, PublishCommandOutput } from "@aws-sdk/client-iot-data-plane";
 import { Resource } from "sst";
-import { Vehicles } from "./vehicles";
 
 export module Realtimed {
   export type Unknown = {
@@ -19,34 +15,14 @@ export module Realtimed {
       id: string;
     };
   };
-  export type Ride = {
-    type: "ride";
-    action: "created" | "updated" | "deleted" | "unknown";
-    payload: Rides.Info;
-  };
-  export type Vehicle = {
-    type: "vehicle";
-    action: "created" | "updated" | "deleted" | "unknown";
-    payload: Vehicles.Info;
-  };
   export type SystemNotification = {
     type: "systemnotification";
     action: "created" | "updated" | "deleted" | "unknown";
     payload: Notifications.Info;
   };
-  export type Hotspot = {
-    type: "hotspot";
-    action: "created" | "updated" | "deleted" | "unknown";
-    payload: Orders.HotspotInfo;
-  };
-  export type Event = {
-    type: "event";
-    action: "created" | "updated" | "deleted" | "unknown";
-    payload: EventsModule.Info;
-  };
 
   export type Events = {
-    realtime: Payment | Ride | Vehicle | SystemNotification | Hotspot | Event | Unknown;
+    realtime: Payment | SystemNotification | Unknown;
   };
 
   export const Events = {

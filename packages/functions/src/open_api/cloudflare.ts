@@ -1,16 +1,17 @@
-import { app } from "./app";
-import * as ApplicationRoute from "./routes/applications";
-import * as UserRoute from "./routes/users";
+import { Cfg } from "@wfa/core/src/entities/configurator";
+import { Resource } from "sst";
+import { createApp } from "./app";
 
-[UserRoute, ApplicationRoute].forEach((route) => route.registerRoute(app));
-
-app.doc("/doc", {
-  openapi: "3.0.0",
-  info: {
-    version: "0.0.1a",
-    title: "Open API for Workflow Automation",
+Cfg.Configurator.loadObject({
+  home: "cloudflare",
+  storage: {
+    type: "r2",
+    // @ts-ignore
+    bucket: Resource.MainCloudflareStorage,
   },
 });
+
+const app = createApp();
 
 export default {
   fetch: app.fetch,

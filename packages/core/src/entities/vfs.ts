@@ -20,6 +20,7 @@ import {
   ValiError,
 } from "valibot";
 import { Validator } from "../validator";
+import { Cfg } from "./configurator";
 
 export module VFS {
   export type VFSFile<P extends string> = {
@@ -49,20 +50,6 @@ export module VFS {
       contents,
     };
   };
-
-  export type From =
-    | {
-        type: "r2";
-        bucket: R2Bucket;
-      }
-    | {
-        type: "s3";
-        bucket: S3Client;
-      }
-    | {
-        type: "classic";
-        bucket: string;
-      };
 
   const CheckpointSchema = strictObject({
     fs_type: picklist(["folder", "file"]),
@@ -159,7 +146,7 @@ export module VFS {
     return filepath;
   };
 
-  export const getFileAsBuffer = async <F extends From>(filepath: string, from: F) => {
+  export const getFileAsBuffer = async (filepath: string, from: Cfg.Storage) => {
     switch (from.type) {
       case "r2": {
         const file = await from.bucket.get(filepath);
@@ -171,7 +158,7 @@ export module VFS {
       }
       case "s3": {
         const command = new GetObjectCommand({
-          Bucket: Resource.MainAWSStorage.name,
+          Bucket: from.name,
           Key: filepath,
         });
         const response = await from.bucket.send(command);
@@ -215,7 +202,7 @@ export module VFS {
     return filepath;
   };
 
-  export const getFolder = async <F extends From, P extends string>(path: P, from: F): Promise<VFSFolder<P>> => {
+  export const getFolder = async <P extends string>(path: P, from: Cfg.Storage): Promise<VFSFolder<P>> => {
     switch (from.type) {
       case "r2": {
         const folder: VFSFolder<P> = {
@@ -248,7 +235,7 @@ export module VFS {
         };
         // get the folder contents
         const listObjectsCommand = new ListObjectsCommand({
-          Bucket: Resource.MainAWSStorage.name,
+          Bucket: from.name,
           Prefix: path,
         });
         const files = await from.bucket.send(listObjectsCommand);
@@ -266,7 +253,7 @@ export module VFS {
           }
           const array_buffer = await from.bucket.send(
             new GetObjectCommand({
-              Bucket: Resource.MainAWSStorage.name,
+              Bucket: from.name,
               Key: file.Key,
             }),
           );

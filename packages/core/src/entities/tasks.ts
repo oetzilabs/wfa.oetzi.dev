@@ -6,6 +6,7 @@ import { db } from "../drizzle/sql";
 import { tasks } from "../drizzle/sql/schemas/tasks";
 import { Validator } from "../validator";
 import { ActivityLogs } from "./activity_logs";
+import { Cfg } from "./configurator";
 import { Downloader } from "./downloader";
 import { Executor } from "./executor";
 import { Users } from "./users";
@@ -139,7 +140,7 @@ export module Tasks {
   export const getEnvironment = async (
     taskId: InferInput<typeof Validator.Cuid2Schema>,
     environment: InferInput<typeof EnvironmentSchema>,
-    from: VFS.From,
+    from: Cfg.Storage,
     tsx = db,
   ) => {
     const is_valid_task_id = safeParse(Validator.Cuid2Schema, taskId);
@@ -162,7 +163,7 @@ export module Tasks {
 
   export const loadScript = async (
     env: Awaited<ReturnType<typeof Tasks.getEnvironment>>,
-    from: VFS.From,
+    from: Cfg.Storage,
   ): Promise<Executor.ScriptRunner> => {
     let script: string = "";
     const scriptPath = "/scripts/main.js";

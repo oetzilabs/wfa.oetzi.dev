@@ -8,10 +8,10 @@ export default $config({
       home: "cloudflare",
       region: "eu-central-1",
       providers: {
+        cloudflare: true,
         aws: {
           region: "eu-central-1",
         },
-        cloudflare: true,
       },
     };
   },

@@ -1,6 +1,22 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fallback, InferOutput, number, object, optional, picklist, safeParse, ValiError } from "valibot";
+import { S3Client } from "@aws-sdk/client-s3";
+import { Resource } from "sst";
+import {
+  custom,
+  fallback,
+  InferOutput,
+  literal,
+  number,
+  object,
+  optional,
+  picklist,
+  safeParse,
+  strictObject,
+  string,
+  ValiError,
+  variant,
+} from "valibot";
 
 export module Cfg {
   export const HOMES = ["aws", "cloudflare", "local"] as const;
@@ -11,16 +27,93 @@ export module Cfg {
 
   const environment_filenames = [".env", ".env.local", ".env.development", ".env.production"];
 
-  export const ConfigSchema = object({
+  const ConfigSchema = object({
     home: fallback(optional(picklist(Cfg.HOMES)), Cfg.DEFAULT_HOME),
     task_runnner_memory: fallback(optional(number()), DEFAULT_MEMORY),
     task_runnner_timeout: fallback(optional(number()), DEFAULT_TIMEOUT),
+    storage: variant("type", [
+      strictObject({
+        type: literal("r2"),
+        bucket: custom<R2Bucket>((value) => {
+          if (!value) {
+            return false;
+          }
+          if (!(value instanceof R2Bucket)) {
+            return false;
+          }
+          return true;
+        }),
+      }),
+      strictObject({
+        type: literal("s3"),
+        name: string(),
+        bucket: custom<S3Client>((value) => {
+          if (!value) {
+            return false;
+          }
+          if (!(value instanceof S3Client)) {
+            return false;
+          }
+          // get the constructor name
+          const name = value.constructor.name;
+          // check if the name starts with "S3Client"
+          if (!name.startsWith("S3Client")) {
+            return false;
+          }
+          return true;
+        }),
+      }),
+      strictObject({
+        type: literal("local"),
+        bucket: string(),
+      }),
+    ]),
   });
 
   export type Config = InferOutput<typeof ConfigSchema>;
 
+  export type Storage =
+    | {
+        type: "r2";
+        bucket: R2Bucket;
+      }
+    | {
+        type: "s3";
+        name: string;
+        bucket: S3Client;
+      }
+    | {
+        type: "local";
+        bucket: string;
+      };
+
+  export const findStorage = <
+    T extends (typeof ConfigSchema.entries.storage.options)[number]["entries"]["type"]["literal"],
+  >(
+    type: T,
+    bucket: Extract<Storage, { type: T }>["bucket"],
+    name: T extends "s3" ? Extract<Storage, { type: "s3" }>["name"] : undefined,
+  ): Storage => {
+    switch (type) {
+      case "r2": {
+        return { type: "r2", bucket } as Extract<Storage, { type: "r2" }>;
+      }
+      case "s3": {
+        return { type: "s3", bucket, name } as Extract<Storage, { type: "s3" }>;
+      }
+      case "local": {
+        return { type: "local", bucket: bucket } as Extract<Storage, { type: "local" }>;
+      }
+      default: {
+        throw new Error(`Invalid storage type: ${type}`);
+      }
+    }
+  };
+
+  export const DEFAULT_STORAGE: Storage = findStorage("local", join(process.cwd(), "/tmp"), undefined);
+
   export abstract class Configurator {
-    static _cfg: Config | undefined = undefined;
+    private static _cfg: Config | undefined = undefined;
 
     private static check_path(path: string): boolean {
       const isAbsolutePath = path.startsWith("/");
@@ -45,7 +138,7 @@ export module Cfg {
      * @throws {Error} If the configuration file does not exist.
      * @throws {ValiError} If the configuration file/object is invalid.
      */
-    public static load<T extends Config>(path?: string, ignore_keys: string[] = []): T {
+    public static load(path?: string, ignore_keys: string[] = []): Config {
       if (path === undefined) {
         path = join(process.cwd(), ".env");
       }
@@ -100,22 +193,26 @@ export module Cfg {
         console.log(`[CONFIG] ${key}=${obj[key]}`);
         env.set(key, JSON.parse(fakeObj)[key]);
       }
-      const final_obj: T = Object.assign({}, ...Array.from(env.values()));
+      const final_obj: Config = Object.assign({}, ...Array.from(env.values()));
 
-      const is_valid_config = safeParse(Cfg.ConfigSchema, final_obj);
+      const is_valid_config = safeParse(ConfigSchema, final_obj);
       if (!is_valid_config.success) {
         throw is_valid_config.issues;
       }
       Configurator._cfg = final_obj;
       return final_obj;
     }
-    public load<T extends Config>(obj: T): T {
-      const is_valid_config = safeParse(Cfg.ConfigSchema, obj);
+    public static loadObject(obj: InferOutput<typeof ConfigSchema>) {
+      const is_valid_config = safeParse(ConfigSchema, obj);
       if (!is_valid_config.success) {
         throw is_valid_config.issues;
       }
-      Configurator._cfg = obj;
-      return obj;
+      const storage = findStorage(
+        is_valid_config.output.storage.type,
+        is_valid_config.output.storage.bucket,
+        is_valid_config.output.storage.type === "s3" ? is_valid_config.output.storage.name : undefined,
+      );
+      Configurator._cfg = { ...obj, storage };
     }
 
     public static getConfig(): Config {
@@ -131,7 +228,7 @@ export module Cfg {
      * @returns The value.
      * @throws {Error} If the configuration is not initialized.
      */
-    public get<K extends keyof Config>(key: K): Config[K] {
+    public static get<K extends keyof Config>(key: K): Config[K] {
       if (!Configurator._cfg) {
         throw new Error("Configurator not initialized yet, please call Configurator.load() first");
       }
