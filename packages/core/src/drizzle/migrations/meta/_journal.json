@@ -8,6 +8,13 @@
       "when": 1732461567402,
       "tag": "0000_wakeful_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1732815050152,
+      "tag": "0001_silent_electro",
+      "breakpoints": true
     }
   ]
 }

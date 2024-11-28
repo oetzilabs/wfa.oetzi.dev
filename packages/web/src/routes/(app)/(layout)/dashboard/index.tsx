@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import dayjs from "dayjs";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Plus from "lucide-solid/icons/plus";
+import Wrench from "lucide-solid/icons/wrench";
 import { Show, Suspense } from "solid-js";
 import { Badge } from "../../../../components/ui/badge";
 
@@ -91,8 +92,11 @@ export default function DashboardPage() {
                         {(app) => (
                           <span class="flex flex-row gap-1 items-center">
                             You are currently on
-                            <Badge variant="outline" class="px-1.5">
-                              {app().name}
+                            <Badge variant="outline" class="px-1.5 group">
+                              <span>{app().name}</span>
+                              <div class="group-hover:flex hidden">
+                                <Wrench class="size-3" />
+                              </div>
                             </Badge>
                           </span>
                         )}

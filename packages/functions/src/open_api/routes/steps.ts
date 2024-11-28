@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { Applications } from "@wfa/core/src/entities/application";
-import { Workflows } from "@wfa/core/src/entities/workflows";
 import { Steps } from "@wfa/core/src/entities/steps";
+import { Workflows } from "@wfa/core/src/entities/workflows";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
 import { App, Env } from "../app";
@@ -104,9 +104,9 @@ export module StepRoute {
           {
             id: step.id,
           },
-          StatusCodes.OK
+          StatusCodes.OK,
         );
       })
-      .route("/{aid}/workflows/{wid}/steps/{sid}/tasks", TaskRoute.create());
+      .route("{sid}/tasks", TaskRoute.create());
   };
 }

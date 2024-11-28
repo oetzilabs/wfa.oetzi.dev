@@ -8,6 +8,7 @@ export const tasks = commonTable(
   "tasks",
   (t) => ({
     name: t.text("name").notNull(),
+    custom: t.boolean("custom").notNull().default(false),
     token: t
       .text("token")
       .notNull()

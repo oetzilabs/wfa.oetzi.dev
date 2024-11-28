@@ -79,12 +79,12 @@ export module WorkflowRoute {
     return app
       .openapi(main_route, async (c) => {
         // console.log("calling application route");
-        const { wid, aid } = c.req.valid("param");
-        const application = await Applications.findById(aid);
+        const params = c.req.valid("param");
+        const application = await Applications.findById(params.aid);
         if (!application) {
           return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
         }
-        const workflow = await Workflows.findById(wid);
+        const workflow = await Workflows.findById(params.wid);
         if (!workflow) {
           return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
         }
@@ -92,9 +92,9 @@ export module WorkflowRoute {
           {
             id: workflow.id,
           },
-          StatusCodes.OK
+          StatusCodes.OK,
         );
       })
-      .route("/{aid}/workflows/{wid}/steps", StepRoute.create());
+      .route("/{wid}/steps", StepRoute.create());
   };
 }

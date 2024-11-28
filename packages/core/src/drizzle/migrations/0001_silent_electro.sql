@@ -1,0 +1,2 @@
+ALTER TYPE "workflowautomation"."activity_enums" ADD VALUE 'preparing_environment' BEFORE 'idle';--> statement-breakpoint
+ALTER TABLE "workflowautomation"."tasks" ADD COLUMN "custom" boolean DEFAULT false NOT NULL;

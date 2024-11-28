@@ -1,4 +1,5 @@
 import ivm from "isolated-vm";
+import { Cfg } from "./configurator";
 
 export module Executor {
   export type ScriptRunner = {
@@ -15,13 +16,13 @@ export module Executor {
     id: string;
     environmentPath: string;
     scriptRunner: ScriptRunner;
-    home: "aws" | "cloudflare" | "local";
+    home: Cfg.Config["home"];
   } & Partial<PreparedEnvironmentOptions>;
 
-  export const DEFAULT_HOME: PreparedEnvironment["home"] = "local";
+  export const DEFAULT_HOME: PreparedEnvironment["home"] = Cfg.DEFAULT_HOME;
 
-  const DEFAULT_MEMORY: PreparedEnvironmentOptions["memory"] = 128;
-  const DEFAULT_TIMEOUT: PreparedEnvironmentOptions["timeout"] = 20_000;
+  const DEFAULT_MEMORY: PreparedEnvironmentOptions["memory"] = Cfg.DEFAULT_MEMORY;
+  const DEFAULT_TIMEOUT: PreparedEnvironmentOptions["timeout"] = Cfg.DEFAULT_TIMEOUT;
 
   export const DEFAULT_OPTIONS: PreparedEnvironmentOptions = {
     memory: DEFAULT_MEMORY,

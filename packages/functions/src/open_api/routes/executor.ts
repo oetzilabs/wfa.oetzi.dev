@@ -166,6 +166,9 @@ export module ExecutorRoute {
       [StatusCodes.UNAUTHORIZED]: {
         description: "Unauthorized",
       },
+      [StatusCodes.NOT_IMPLEMENTED]: {
+        description: "Not implemented",
+      },
       [StatusCodes.FAILED_DEPENDENCY]: {
         description: "Failed dependency",
       },
@@ -206,62 +209,74 @@ export module ExecutorRoute {
         if (!task) {
           return c.json({ error: "Task not found" }, StatusCodes.NOT_FOUND);
         }
+
         const fromBucket: VFS.From = {
           type: "r2",
           // @ts-ignore
           bucket: Resource.MainCloudflareStorage,
         };
-        try {
-          const taskFolder = await Tasks.getEnvironment(task.id, params, fromBucket);
-          if (!taskFolder) {
-            return c.json({ error: "Task environment failed to load" }, StatusCodes.FAILED_DEPENDENCY);
-          }
-          const taskScript = await Tasks.loadScript(taskFolder, fromBucket);
-          if (!taskScript) {
-            return c.json({ error: "Task script failed to load" }, StatusCodes.FAILED_DEPENDENCY);
-          }
-          const prepared_activity_environment = await Tasks.prepareEnvironment(
-            user,
-            params,
-            taskScript,
-            taskFolder,
-            !["production", "staging"].includes(Resource.App.stage) ? "local" : Executor.DEFAULT_HOME,
-            {
-              memory: 4096,
-            },
-          );
-          if (!prepared_activity_environment) {
-            return c.json({ error: "Task environment failed to prepare" }, StatusCodes.FAILED_DEPENDENCY);
-          }
-          const input = c.req.valid("json");
-          let result: Executor.ExecutionResult | null = null;
+
+        if (task.custom) {
+          return c.json({ error: "Task is custom and cannot be executed" }, StatusCodes.NOT_IMPLEMENTED);
+          /*
           try {
-            result = await Executor.run(prepared_activity_environment, input);
-          } catch (error) {
-            if (error instanceof Executor.ExecutionError) {
-              return c.json({ error: error.message }, StatusCodes.INTERNAL_SERVER_ERROR);
+            const taskFolder = await Tasks.getEnvironment(task.id, params, fromBucket);
+            if (!taskFolder) {
+              return c.json({ error: "Task environment failed to load" }, StatusCodes.FAILED_DEPENDENCY);
             }
-            if (error instanceof Executor.NotImplementetError) {
-              return c.json({ error: error.message }, StatusCodes.NOT_IMPLEMENTED);
+            const taskScript = await Tasks.loadScript(taskFolder, fromBucket);
+            if (!taskScript) {
+              return c.json({ error: "Task script failed to load" }, StatusCodes.FAILED_DEPENDENCY);
             }
-            return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
-          } finally {
-            await rm(prepared_activity_environment.environmentPath, { recursive: true });
+            const prepared_activity_environment = await Tasks.prepareEnvironment(
+              user,
+              params,
+              taskScript,
+              taskFolder,
+              !["production", "staging"].includes(Resource.App.stage) ? "local" : Executor.DEFAULT_HOME,
+              {
+                memory: 4096,
+              },
+            );
+            if (!prepared_activity_environment) {
+              return c.json({ error: "Task environment failed to prepare" }, StatusCodes.FAILED_DEPENDENCY);
+            }
+            const input = c.req.valid("json");
+            let result: Executor.ExecutionResult | null = null;
+            try {
+              result = await Executor.run(prepared_activity_environment, input);
+            } catch (error) {
+              if (error instanceof Executor.ExecutionError) {
+                return c.json({ error: error.message }, StatusCodes.INTERNAL_SERVER_ERROR);
+              }
+              if (error instanceof Executor.NotImplementetError) {
+                return c.json({ error: error.message }, StatusCodes.NOT_IMPLEMENTED);
+              }
+              return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
+            } finally {
+              await rm(prepared_activity_environment.environmentPath, { recursive: true });
+            }
+            if (!result) {
+              return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
+            }
+            return c.json(
+              {
+                task_id: task.id,
+                name: task.name,
+                token: task.token,
+              },
+              StatusCodes.OK,
+            );
+          } catch (e) {
+            console.log(e);
+            return c.json({ error: "Task failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
           }
-          if (!result) {
-            return c.json({ error: "Task script failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
-          }
+            */
+        } else {
           return c.json(
-            {
-              task_id: task.id,
-              name: task.name,
-              token: task.token,
-            },
-            StatusCodes.OK,
+            { error: "Task execution is not implemented yet. We are working on it!" },
+            StatusCodes.NOT_IMPLEMENTED,
           );
-        } catch (e) {
-          console.log(e);
-          return c.json({ error: "Task failed to execute" }, StatusCodes.INTERNAL_SERVER_ERROR);
         }
       });
   };
