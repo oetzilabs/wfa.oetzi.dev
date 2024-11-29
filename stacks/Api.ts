@@ -9,10 +9,12 @@ const copyFiles = [
     to: "drizzle",
   },
 ];
+
 // export const hono_open_api_cf = new sst.cloudflare.Worker("HonoOpenApi", {
 //   domain: $interpolate`api.${domain}`,
 //   link: [...allSecrets, auth, mainAWSStorage, mainCloudflareStorage],
 //   handler: "packages/functions/src/open_api/cloudflare.ts",
+//   dev: $dev,
 //   url: true,
 // });
 

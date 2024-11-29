@@ -4,6 +4,8 @@ import { createApp } from "./app";
 
 Cfg.Configurator.loadObject({
   home: "cloudflare",
+  environment:
+    Resource.App.stage === "production" ? "production" : Resource.App.stage === "staging" ? "staging" : "development",
   storage: {
     type: "r2",
     // @ts-ignore

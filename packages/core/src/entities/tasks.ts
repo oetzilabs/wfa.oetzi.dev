@@ -1,3 +1,4 @@
+import type { Executor } from "./executor";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { desc, eq } from "drizzle-orm";
@@ -8,7 +9,6 @@ import { Validator } from "../validator";
 import { ActivityLogs } from "./activity_logs";
 import { Cfg } from "./configurator";
 import { Downloader } from "./downloader";
-import { Executor } from "./executor";
 import { Users } from "./users";
 import { VFS } from "./vfs";
 
@@ -187,8 +187,8 @@ export module Tasks {
     environment: InferInput<typeof EnvironmentSchema>,
     scriptRunner: SR,
     taskFolder: Awaited<ReturnType<typeof VFS.getFolder>>,
-    home: Executor.PreparedEnvironment["home"] = Executor.DEFAULT_HOME,
-    options: Partial<Executor.PreparedEnvironmentOptions> = Executor.DEFAULT_OPTIONS,
+    home: Executor.PreparedEnvironment["home"] = Cfg.DEFAULT_HOME,
+    options: Partial<Executor.PreparedEnvironmentOptions> = Cfg.DEFAULT_TASK_RUNNER,
   ): Promise<Executor.PreparedEnvironment> => {
     const activity_log = await ActivityLogs.create({
       run_by_user_id: user.id,

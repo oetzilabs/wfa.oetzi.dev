@@ -13,7 +13,7 @@
     "studio": "sst shell 'bun run drizzle-kit studio --host 0.0.0.0 --port 1337'"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20241112.0",
+    "@cloudflare/workers-types": "4.20241127.0",
     "@tsconfig/node22": "22.0.0",
     "@types/node": "22.4.2",
     "@types/nodemailer": "^6.4.16",

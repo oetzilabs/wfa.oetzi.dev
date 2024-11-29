@@ -3,7 +3,6 @@ import { Cfg } from "@wfa/core/src/entities/configurator";
 import { Tasks } from "@wfa/core/src/entities/tasks";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
-import { Resource } from "sst";
 import { ensureAuthenticated } from "../../utils";
 import { Env } from "../app";
 import { AuthorizationHeader } from "../middleware/authentication";

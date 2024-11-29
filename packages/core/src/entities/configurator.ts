@@ -1,11 +1,13 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { S3Client } from "@aws-sdk/client-s3";
-import { Resource } from "sst";
+// import { R2Bucket } from "@cloudflare/workers-types";
 import {
   custom,
   fallback,
+  InferInput,
   InferOutput,
+  instance,
   literal,
   number,
   object,
@@ -24,13 +26,25 @@ export module Cfg {
   export const DEFAULT_HOME: (typeof Cfg.HOMES)[number] = "local";
   export const DEFAULT_MEMORY = 128;
   export const DEFAULT_TIMEOUT = 20_000;
+  export const DEFAULT_TASK_RUNNER = {
+    memory: DEFAULT_MEMORY,
+    timeout: DEFAULT_TIMEOUT,
+  };
 
-  const environment_filenames = [".env", ".env.local", ".env.development", ".env.production"];
+  const environment_filenames = [".env", ".env.local", ".env.development", ".env.production", ".env.staging"];
 
   const ConfigSchema = object({
     home: fallback(optional(picklist(Cfg.HOMES)), Cfg.DEFAULT_HOME),
-    task_runnner_memory: fallback(optional(number()), DEFAULT_MEMORY),
-    task_runnner_timeout: fallback(optional(number()), DEFAULT_TIMEOUT),
+    environment: fallback(optional(picklist(["development", "production", "staging"])), "development"),
+    task_runner: fallback(
+      optional(
+        strictObject({
+          memory: fallback(optional(number()), DEFAULT_MEMORY),
+          timeout: fallback(optional(number()), DEFAULT_TIMEOUT),
+        }),
+      ),
+      DEFAULT_TASK_RUNNER,
+    ),
     storage: variant("type", [
       strictObject({
         type: literal("r2"),
@@ -47,21 +61,6 @@ export module Cfg {
       strictObject({
         type: literal("s3"),
         name: string(),
-        bucket: custom<S3Client>((value) => {
-          if (!value) {
-            return false;
-          }
-          if (!(value instanceof S3Client)) {
-            return false;
-          }
-          // get the constructor name
-          const name = value.constructor.name;
-          // check if the name starts with "S3Client"
-          if (!name.startsWith("S3Client")) {
-            return false;
-          }
-          return true;
-        }),
       }),
       strictObject({
         type: literal("local"),
@@ -202,14 +201,24 @@ export module Cfg {
       Configurator._cfg = final_obj;
       return final_obj;
     }
-    public static loadObject(obj: InferOutput<typeof ConfigSchema>) {
+    /**
+     * Load a configuration object
+     * @param obj your configuration object
+     * @returns the configuration object
+     */
+    public static loadObject(obj: InferInput<typeof ConfigSchema>) {
       const is_valid_config = safeParse(ConfigSchema, obj);
       if (!is_valid_config.success) {
+        console.log("Invalid configuration object", is_valid_config.issues);
         throw is_valid_config.issues;
       }
       const storage = findStorage(
         is_valid_config.output.storage.type,
-        is_valid_config.output.storage.bucket,
+        is_valid_config.output.storage.type === "r2"
+          ? is_valid_config.output.storage.bucket
+          : is_valid_config.output.storage.type === "s3"
+            ? new S3Client({ endpoint: is_valid_config.output.storage.name })
+            : is_valid_config.output.storage.bucket,
         is_valid_config.output.storage.type === "s3" ? is_valid_config.output.storage.name : undefined,
       );
       Configurator._cfg = { ...obj, storage };
