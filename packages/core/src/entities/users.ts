@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import {
+  array,
   date,
   InferInput,
   intersect,
@@ -104,56 +105,75 @@ export module Users {
     return tsx.delete(users).where(eq(users.id, isValid.output)).returning();
   };
 
-  export const seed = async () => {
-    console.log("Creating admin user and company");
-    const adminUserExists = await Users.findByEmail("admin@wfa.oetzi.dev");
-    if (!adminUserExists) {
-      const adminUser = await Users.create({
-        email: "admin@wfa.oetzi.dev",
-        verifiedAt: new Date(),
-        name: "Admin",
-      });
-      console.log("Admin user created");
-      const adminCompanyExists = await Organizations.findByName("Taxi Kasse");
-
-      if (!adminCompanyExists) {
-        const adminCompany = await Organizations.create({
+  export const seed = async (data: InferInput<typeof CreateSchema>[] = []) => {
+    if (data.length === 0) {
+      console.log("Creating admin user and company");
+      const adminUserExists = await Users.findByEmail("admin@wfa.oetzi.dev");
+      if (!adminUserExists) {
+        const adminUser = await Users.create({
           email: "admin@wfa.oetzi.dev",
-          owner_id: adminUser!.id,
-          name: "Taxi Kasse",
-          phoneNumber: "123456789",
-          website: "https://wfa.oetzi.dev",
-          base_charge: 0,
-          distance_charge: 0,
-          time_charge: 0,
+          verifiedAt: new Date(),
+          name: "Admin",
         });
-        console.log("Admin organization created");
+        console.log("Admin user created");
+        const adminCompanyExists = await Organizations.findByName("QWERTY Studios");
+
+        if (!adminCompanyExists) {
+          const adminCompany = await Organizations.create({
+            email: "admin@wfa.oetzi.dev",
+            owner_id: adminUser!.id,
+            name: "QWERTY Studios",
+            phoneNumber: "123456789",
+            website: "https://wfa.oetzi.dev",
+            base_charge: 0,
+            distance_charge: 0,
+            time_charge: 0,
+          });
+          console.log("Admin organization created");
+        }
       }
-    }
 
-    console.log("Creating test user and company");
-    const testUserExists = await Users.findByEmail("testuser@wfa.oetzi.dev");
+      console.log("Creating test user and company");
+      const testUserExists = await Users.findByEmail("testuser@wfa.oetzi.dev");
 
-    if (!testUserExists) {
-      const testUser = await Users.create({
-        email: "testuser@wfa.oetzi.dev",
-        verifiedAt: new Date(),
-        name: "Test",
-      });
-      console.log("Test user created");
-      const testCompanyExists = await Organizations.findByName("Test Company");
-      if (!testCompanyExists) {
-        const testCompany = await Organizations.create({
+      if (!testUserExists) {
+        const testUser = await Users.create({
           email: "testuser@wfa.oetzi.dev",
-          owner_id: testUser!.id,
-          name: "Test Company",
-          phoneNumber: "123456789",
-          website: "https://wfa.oetzi.dev",
-          base_charge: 0,
-          distance_charge: 0,
-          time_charge: 0,
+          verifiedAt: new Date(),
+          name: "Test",
         });
-        console.log("Test company created");
+        console.log("Test user created");
+        const testCompanyExists = await Organizations.findByName("Test Company");
+        if (!testCompanyExists) {
+          const testCompany = await Organizations.create({
+            email: "testuser@wfa.oetzi.dev",
+            owner_id: testUser!.id,
+            name: "Test Company",
+            phoneNumber: "123456789",
+            website: "https://wfa.oetzi.dev",
+            base_charge: 0,
+            distance_charge: 0,
+            time_charge: 0,
+          });
+          console.log("Test company created");
+        }
+      }
+    } else {
+      const is_valid_data = safeParse(array(CreateSchema), data);
+
+      if (!is_valid_data.success) {
+        throw is_valid_data.issues;
+      }
+
+      for (const user of data) {
+        const userExists = await Users.findByEmail(user.email);
+        if (!userExists) {
+          const createdUser = await Users.create(user);
+          if (!createdUser) {
+            throw new Error("Could not create user");
+          }
+          console.log(`User ${createdUser.email} created`);
+        }
       }
     }
   };
