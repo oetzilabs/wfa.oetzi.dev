@@ -106,6 +106,8 @@ export module Users {
   };
 
   export const seed = async (data: InferInput<typeof CreateSchema>[] = []) => {
+    const created_users = [];
+    const created_organizations = [];
     if (data.length === 0) {
       console.log("Creating admin user and company");
       const adminUserExists = await Users.findByEmail("admin@wfa.oetzi.dev");
@@ -115,6 +117,10 @@ export module Users {
           verifiedAt: new Date(),
           name: "Admin",
         });
+        if (!adminUser) {
+          throw new Error("Could not create user");
+        }
+        created_users.push(adminUser);
         console.log("Admin user created");
         const adminCompanyExists = await Organizations.findByName("QWERTY Studios");
 
@@ -129,6 +135,10 @@ export module Users {
             distance_charge: 0,
             time_charge: 0,
           });
+          if (!adminCompany) {
+            throw new Error("Could not create organization");
+          }
+          created_organizations.push(adminCompany);
           console.log("Admin organization created");
         }
       }
@@ -142,6 +152,10 @@ export module Users {
           verifiedAt: new Date(),
           name: "Test",
         });
+        if (!testUser) {
+          throw new Error("Could not create user");
+        }
+        created_users.push(testUser);
         console.log("Test user created");
         const testCompanyExists = await Organizations.findByName("Test Company");
         if (!testCompanyExists) {
@@ -155,6 +169,10 @@ export module Users {
             distance_charge: 0,
             time_charge: 0,
           });
+          if (!testCompany) {
+            throw new Error("Could not create organization");
+          }
+          created_organizations.push(testCompany);
           console.log("Test company created");
         }
       }
@@ -172,6 +190,7 @@ export module Users {
           if (!createdUser) {
             throw new Error("Could not create user");
           }
+          created_users.push(createdUser);
           console.log(`User ${createdUser.email} created`);
         }
       }

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Resource } from "sst";
 import { Cfg } from "./configurator";
+import { Organizations } from "./organizations";
 import { Users } from "./users";
 
 Cfg.Configurator.loadObject({
@@ -38,7 +39,8 @@ const main = async () => {
     const json = readFileSync(path, "utf-8");
     const data = JSON.parse(json);
 
-    await Users.seed(data);
+    await Users.seed(data.users);
+    await Organizations.seed(data.organizations);
     process.exit(0);
   }
   await Users.seed();

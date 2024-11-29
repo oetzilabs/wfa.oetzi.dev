@@ -1,5 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import {
+  array,
   date,
   InferInput,
   intersect,
@@ -147,5 +148,25 @@ export module Organizations {
       throw isValid.issues;
     }
     return tsx.delete(organizations).where(eq(organizations.id, isValid.output)).returning();
+  };
+  export const seed = async (data: InferInput<typeof CreateSchema>[] = []) => {
+    const created = [];
+    if (data.length > 0) {
+      const is_valid_data = safeParse(array(CreateSchema), data);
+      if (!is_valid_data.success) {
+        throw is_valid_data.issues;
+      }
+      for (const org of data) {
+        const orgExists = await Organizations.findByName(org.name);
+        if (!orgExists) {
+          const createdOrg = await Organizations.create(org);
+          if (!createdOrg) {
+            throw new Error("Could not create organization");
+          }
+          console.log(`Organization ${createdOrg.name} created`);
+          created.push(createdOrg);
+        }
+      }
+    }
   };
 }
