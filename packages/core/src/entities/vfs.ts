@@ -153,7 +153,7 @@ export module VFS {
         if (!file) {
           throw new Error(`The file '${filepath}' does not have any contents or does not exist on the R2 Bucket`);
         }
-        const array_buffer = await file.arrayBuffer();
+        const array_buffer = (await file.arrayBuffer()) as ArrayBuffer;
         return Buffer.from(array_buffer);
       }
       case "s3": {
@@ -222,7 +222,7 @@ export module VFS {
             folder.contents.push(createFolder(file.key));
             continue;
           }
-          const array_buffer = await fileContents.arrayBuffer();
+          const array_buffer = (await fileContents.arrayBuffer()) as ArrayBuffer;
           folder.contents.push(createFile(file.key, Buffer.from(array_buffer)));
         }
         return folder;

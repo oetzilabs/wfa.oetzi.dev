@@ -21,9 +21,6 @@ export module Executor {
 
   export const DEFAULT_HOME: PreparedEnvironment["home"] = Cfg.DEFAULT_HOME;
 
-  const DEFAULT_MEMORY: PreparedEnvironmentOptions["memory"] = Cfg.DEFAULT_MEMORY;
-  const DEFAULT_TIMEOUT: PreparedEnvironmentOptions["timeout"] = Cfg.DEFAULT_TIMEOUT;
-
   export const DEFAULT_OPTIONS: PreparedEnvironmentOptions = Cfg.DEFAULT_TASK_RUNNER;
 
   export type ExecutionResult<T extends unknown = unknown> =
