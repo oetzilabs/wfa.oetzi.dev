@@ -1,24 +1,23 @@
-import { InferInput, InferOutput, strictObject, string } from "valibot";
+import { strictObject, string } from "valibot";
 import { TaskGenerator } from "./generator";
 
 const [schema, run] = TaskGenerator.create({
   input: strictObject({
     b: string(),
   }),
-  success: strictObject({
-    a: string(),
+  output: strictObject({
+    c: string(),
   }),
   fn: async (input) => {
-    console.log("hello from fn");
     return {
-      a: input.b,
+      c: input.b,
     };
   },
 });
 
-console.time();
 const result = await run({
-  b: "c",
+  b: "hello",
 });
-console.timeEnd();
+
 console.log(result);
+result.type === "success" ? console.log(result.data.c) : console.log(result.error);

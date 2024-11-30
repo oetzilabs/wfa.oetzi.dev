@@ -2,11 +2,12 @@ import { any, flatten, GenericSchema, InferInput, InferOutput, safeParse } from 
 
 // Task Collection module
 export module TaskGenerator {
+  // Interface for defining a task
   export interface CreateSchema<I, O> {
-    input: GenericSchema<I, I>;
+    input: GenericSchema<I, I>; // Input schema
     outputs: {
-      success: GenericSchema<unknown, O>;
-      error: GenericSchema<unknown, any>;
+      success: GenericSchema<unknown, O>; // Success output schema
+      error: GenericSchema<unknown, any>; // Error output schema
     };
     fn: (
       input: InferOutput<this["input"]>,
@@ -14,21 +15,25 @@ export module TaskGenerator {
   }
 
   export interface CreateFunctionSchema<I, O> {
-    input: GenericSchema<I, I>;
-    success: GenericSchema<unknown, O>;
-    fn: (input: InferOutput<this["input"]>) => Promise<InferOutput<this["success"]>>;
+    input: GenericSchema<I, I>; // Input schema
+    output: GenericSchema<unknown, O>; // Success output schema
+    fn: (input: InferInput<this["input"]>) => Promise<InferOutput<this["output"]>> | InferOutput<this["output"]>;
   }
 
   export const create = <I, O>(setup: CreateFunctionSchema<I, O>) => {
-    const schema = {
+    const schema: CreateSchema<I, O> = {
       input: setup.input,
       fn: setup.fn,
       outputs: {
-        success: setup.success,
-        error: any(),
+        success: setup.output,
+        error: any(), // Default error schema
       },
     };
-    const runner = (input: InferInput<(typeof schema)["input"]>) => tryValidateOutput(schema, input);
+
+    // Runner function that validates input and output
+    const runner = async (input: InferInput<(typeof schema)["input"]>) =>
+      tryValidateOutput<I, O, typeof schema>(schema, input);
+
     return [schema, runner] as const;
   };
 
@@ -39,19 +44,19 @@ export module TaskGenerator {
     const { input, outputs } = schema;
     const { success: SuccessSchema } = outputs;
 
-    // Parse input
+    // Validate input schema
     const parseInput = safeParse(input, value);
     if (!parseInput.success) {
       return {
         type: "error:input",
-        error: flatten(parseInput.issues), // Flatten input issues
+        error: flatten(parseInput.issues), // Flatten input schema issues
       } as const;
     }
 
-    const fn = schema.fn;
+    // Execute the function
     let fnResult: InferOutput<typeof SuccessSchema>;
     try {
-      fnResult = await fn(parseInput.output);
+      fnResult = await schema.fn(parseInput.output);
     } catch (error) {
       return {
         type: "error:fn",
@@ -59,7 +64,7 @@ export module TaskGenerator {
       } as const;
     }
 
-    // Validate against success schema
+    // Validate success schema
     const parsedOutput = safeParse(SuccessSchema, fnResult);
     if (!parsedOutput.success) {
       return {
@@ -68,9 +73,10 @@ export module TaskGenerator {
       } as const;
     }
 
+    // Return success
     return {
       type: "success",
-      data: parsedOutput.output, // Parsed and validated success data
+      data: parsedOutput.output as InferOutput<typeof SuccessSchema>,
     } as const;
   };
 }
