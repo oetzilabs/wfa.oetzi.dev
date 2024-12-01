@@ -4,6 +4,7 @@ import { any, flatten, GenericSchema, InferInput, InferOutput, safeParse } from 
 export module TaskGenerator {
   // Interface for defining a task
   export interface CreateSchema<I, O> {
+    name: string;
     input: GenericSchema<I, I>; // Input schema
     outputs: {
       success: GenericSchema<unknown, O>; // Success output schema
@@ -15,6 +16,7 @@ export module TaskGenerator {
   }
 
   export interface CreateFunctionSchema<I, O> {
+    name: string;
     input: GenericSchema<I, I>; // Input schema
     output: GenericSchema<unknown, O>; // Success output schema
     fn: (input: InferInput<this["input"]>) => Promise<InferOutput<this["output"]>> | InferOutput<this["output"]>;
@@ -22,6 +24,7 @@ export module TaskGenerator {
 
   export const create = <I, O>(setup: CreateFunctionSchema<I, O>) => {
     const schema: CreateSchema<I, O> = {
+      name: setup.name,
       input: setup.input,
       fn: setup.fn,
       outputs: {
@@ -37,10 +40,7 @@ export module TaskGenerator {
     return [schema, runner] as const;
   };
 
-  export const tryValidateOutput = async <I, O, CS extends CreateSchema<I, O>>(
-    schema: CS,
-    value: InferInput<CS["input"]>,
-  ) => {
+  const tryValidateOutput = async <I, O, CS extends CreateSchema<I, O>>(schema: CS, value: InferInput<CS["input"]>) => {
     const { input, outputs } = schema;
     const { success: SuccessSchema } = outputs;
 
