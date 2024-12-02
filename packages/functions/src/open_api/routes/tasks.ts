@@ -5,11 +5,84 @@ import { Tasks } from "@wfa/core/src/entities/tasks";
 import { Workflows } from "@wfa/core/src/entities/workflows";
 import { Validator } from "@wfa/core/src/validator";
 import { StatusCodes } from "http-status-codes";
-import { App, Env } from "../app";
+import { ensureAuthenticated } from "src/utils";
+import { Env } from "../app";
 import { AuthorizationHeader } from "../middleware/authentication";
 import { ExecutorRoute } from "./executor";
 
 export module TaskRoute {
+  const list_tasks = createRoute({
+    security: [
+      {
+        Bearer: [],
+      },
+    ],
+    method: "get",
+    path: "/",
+    request: {
+      params: z.object({
+        aid: Validator.prefixed_cuid2.openapi({
+          param: {
+            name: "aid",
+            in: "path",
+          },
+          example: "app_nc6bzmkmd014706rfda898to",
+        }),
+        wid: Validator.prefixed_cuid2.openapi({
+          param: {
+            name: "wid",
+            in: "path",
+          },
+          example: "wf_nc6bzmkmd014706rfda898to",
+        }),
+        sid: Validator.prefixed_cuid2.openapi({
+          param: {
+            name: "sid",
+            in: "path",
+          },
+          example: "step_nc6bzmkmd014706rfda898to",
+        }),
+      }),
+      headers: z.object({
+        authorization: AuthorizationHeader,
+      }),
+    },
+    responses: {
+      [StatusCodes.OK]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                id: z.string().openapi({
+                  example: "task_nc6bzmkmd014706rfda898to",
+                }),
+              })
+              .array()
+              .openapi("TaskList"),
+          },
+        },
+        description: "Retrieve a list of tasks",
+      },
+      [StatusCodes.NOT_FOUND]: {
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                error: z.string().openapi({
+                  examples: ["Workflows not found", "Application not found", "Step not found"],
+                }),
+              })
+              .openapi("ApplicationWorkflowStepTaskNotFoundError"),
+          },
+        },
+        description: "Application, Workflow or Step not found",
+      },
+      [StatusCodes.UNAUTHORIZED]: {
+        description: "Unauthorized",
+      },
+    },
+  });
+
   const main_route = createRoute({
     security: [
       {
@@ -60,13 +133,13 @@ export module TaskRoute {
             schema: z
               .object({
                 id: z.string().openapi({
-                  example: "wf_nc6bzmkmd014706rfda898to",
+                  example: "task_nc6bzmkmd014706rfda898to",
                 }),
               })
-              .openapi("Workflow"),
+              .openapi("Task"),
           },
         },
-        description: "Retrieve an workflow",
+        description: "Retrieve a task",
       },
       [StatusCodes.NOT_FOUND]: {
         content: {
@@ -93,9 +166,52 @@ export module TaskRoute {
     // console.log("registering application route");
     // app.use(main_route.getRoutingPath(), bearer);
     return app
-      .openapi(main_route, async (c) => {
-        // console.log("calling application route");
+      .openapi(list_tasks, async (c) => {
+        const headers = c.req.valid("header");
+
+        const authenticated = await ensureAuthenticated(headers.authorization);
+        if (!authenticated) {
+          return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
+        }
+
         const params = c.req.valid("param");
+
+        const application = await Applications.findById(params.aid);
+        if (!application) {
+          return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
+        }
+
+        const workflow = await Workflows.findById(params.wid);
+        if (!workflow) {
+          return c.json({ error: "Workflow not found" }, StatusCodes.NOT_FOUND);
+        }
+
+        const step = await Steps.findById(params.sid);
+        if (!step) {
+          return c.json({ error: "Step not found" }, StatusCodes.NOT_FOUND);
+        }
+
+        const tasks = await Tasks.findByStepId(step.id);
+
+        if (!tasks) {
+          return c.json({ error: "Tasks not found" }, StatusCodes.NOT_FOUND);
+        }
+
+        return c.json(
+          tasks.map((t) => ({ id: t.id })),
+          StatusCodes.OK
+        );
+      })
+      .openapi(main_route, async (c) => {
+        const headers = c.req.valid("header");
+
+        const authenticated = await ensureAuthenticated(headers.authorization);
+        if (!authenticated) {
+          return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
+        }
+
+        const params = c.req.valid("param");
+
         const application = await Applications.findById(params.aid);
         if (!application) {
           return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
@@ -116,7 +232,7 @@ export module TaskRoute {
           {
             id: task.id,
           },
-          StatusCodes.OK,
+          StatusCodes.OK
         );
       })
       .route("/{tid}/run", ExecutorRoute.create());

@@ -62,6 +62,30 @@ export module Tasks {
     });
   };
 
+  export const findByStepId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+    const isValid = safeParse(Validator.Cuid2Schema, id);
+    if (!isValid.success) {
+      throw isValid.issues;
+    }
+
+    const step_tasks = await tsx.query.steps_tasks.findMany({
+      where: (fields, ops) => ops.eq(fields.step_id, isValid.output),
+    });
+
+    if (step_tasks.length === 0) return [] as Info[];
+
+    return tsx.query.tasks.findMany({
+      where: (fields, ops) =>
+        ops.inArray(
+          fields.id,
+          step_tasks.map((s_t) => s_t.task_id)
+        ),
+      with: {
+        ...Tasks._with,
+      },
+    });
+  };
+
   export const findByName = async (name: string, tsx = db) => {
     return tsx.query.tasks.findFirst({
       where: (fields, ops) => ops.eq(fields.name, name),
@@ -141,7 +165,7 @@ export module Tasks {
     taskId: InferInput<typeof Validator.Cuid2Schema>,
     environment: InferInput<typeof EnvironmentSchema>,
     from: Cfg.Storage,
-    tsx = db,
+    tsx = db
   ) => {
     const is_valid_task_id = safeParse(Validator.Cuid2Schema, taskId);
     if (!is_valid_task_id.success) {
@@ -156,14 +180,14 @@ export module Tasks {
       throw new Error("Task not found");
     }
     const path = [environment.application_id, environment.workflow_id, environment.steps_id, environment.task_id].join(
-      "/",
+      "/"
     );
     return Downloader.getFolder(`v0.0.1/${path}`, from);
   };
 
   export const loadScript = async (
     env: Awaited<ReturnType<typeof Tasks.getEnvironment>>,
-    from: Cfg.Storage,
+    from: Cfg.Storage
   ): Promise<Executor.ScriptRunner> => {
     let script: string = "";
     const scriptPath = "/scripts/main.js";
@@ -188,7 +212,7 @@ export module Tasks {
     scriptRunner: SR,
     taskFolder: Awaited<ReturnType<typeof VFS.getFolder>>,
     home: Executor.PreparedEnvironment["home"] = Cfg.DEFAULT_HOME,
-    options: Partial<Executor.PreparedEnvironmentOptions> = Cfg.DEFAULT_TASK_RUNNER,
+    options: Partial<Executor.PreparedEnvironmentOptions> = Cfg.DEFAULT_TASK_RUNNER
   ): Promise<Executor.PreparedEnvironment> => {
     const activity_log = await ActivityLogs.create({
       run_by_user_id: user.id,
@@ -231,7 +255,7 @@ export module Tasks {
   const copyFiles = async <P extends string, IP extends { path: string }>(
     environmentPath: string,
     folder: VFS.VFSFolder<P>,
-    ignorePaths: IP[] = [],
+    ignorePaths: IP[] = []
   ) => {
     for (const entity of folder.contents) {
       if (entity.type === "file" && ignorePaths.some((ignorePath) => entity.path.startsWith(ignorePath.path))) {
