@@ -54,7 +54,7 @@ export module SystemNotifications {
     return ride!;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -86,7 +86,7 @@ export module SystemNotifications {
     return ns;
   };
 
-  export const allNonHiddenByUser = async (user_id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const allNonHiddenByUser = async (user_id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, user_id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -132,7 +132,7 @@ export module SystemNotifications {
       .returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -141,8 +141,8 @@ export module SystemNotifications {
   };
 
   export const userHidesById = async (
-    system_notification_id: InferInput<typeof Validator.Cuid2Schema>,
-    user_id: InferInput<typeof Validator.Cuid2Schema>,
+    system_notification_id: Validator.Cuid2SchemaInput,
+    user_id: Validator.Cuid2SchemaInput,
     tsx = db,
   ) => {
     const isValid = safeParse(Validator.Cuid2Schema, system_notification_id);

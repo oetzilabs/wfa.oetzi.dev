@@ -49,7 +49,7 @@ export module Tasks {
     return user;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -100,7 +100,7 @@ export module Tasks {
     });
   };
 
-  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.tasks.findMany({
@@ -124,7 +124,7 @@ export module Tasks {
     return tsx.update(tasks).set(isValid.output).where(eq(tasks.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -132,7 +132,7 @@ export module Tasks {
     return update({ id, deletedAt: new Date() }, tsx);
   };
 
-  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -140,7 +140,7 @@ export module Tasks {
     return tsx.delete(tasks).where(eq(tasks.id, isValid.output)).returning();
   };
 
-  export const lastCreatedByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const lastCreatedByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -162,7 +162,7 @@ export module Tasks {
   });
 
   export const getEnvironment = async (
-    taskId: InferInput<typeof Validator.Cuid2Schema>,
+    taskId: Validator.Cuid2SchemaInput,
     environment: InferInput<typeof EnvironmentSchema>,
     from: Cfg.Storage,
     tsx = db

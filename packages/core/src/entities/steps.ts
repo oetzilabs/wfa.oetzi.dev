@@ -42,7 +42,7 @@ export module Steps {
     return user;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_step_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_step_id.success) {
       throw is_valid_step_id.issues;
@@ -69,7 +69,7 @@ export module Steps {
     });
   };
 
-  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_user_id.success) throw is_valid_user_id.issues;
     return tsx.query.steps.findMany({
@@ -97,7 +97,7 @@ export module Steps {
       .returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_step_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_step_id.success) {
       throw is_valid_step_id.issues;
@@ -105,7 +105,7 @@ export module Steps {
     return update({ id, deletedAt: new Date() }, tsx);
   };
 
-  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_step_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_step_id.success) {
       throw is_valid_step_id.issues;
@@ -113,7 +113,7 @@ export module Steps {
     return tsx.delete(steps).where(eq(steps.id, is_valid_step_id.output)).returning();
   };
 
-  export const lastCreatedByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const lastCreatedByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_user_id.success) {
       throw is_valid_user_id.issues;
@@ -126,11 +126,7 @@ export module Steps {
       .limit(1);
   };
 
-  export const addTask = async (
-    id: InferInput<typeof Validator.Cuid2Schema>,
-    taskId: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db,
-  ) => {
+  export const addTask = async (id: Validator.Cuid2SchemaInput, taskId: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_step_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_step_id.success) {
       throw is_valid_step_id.issues;
@@ -142,11 +138,7 @@ export module Steps {
     return tsx.insert(steps_tasks).values({ step_id: is_valid_step_id.output, task_id: is_valid_task_id.output });
   };
 
-  export const removeTask = async (
-    id: InferInput<typeof Validator.Cuid2Schema>,
-    taskId: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db,
-  ) => {
+  export const removeTask = async (id: Validator.Cuid2SchemaInput, taskId: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_step_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_step_id.success) {
       throw is_valid_step_id.issues;

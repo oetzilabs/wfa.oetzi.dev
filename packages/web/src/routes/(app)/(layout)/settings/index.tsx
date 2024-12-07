@@ -1,4 +1,6 @@
 import { language, setLanguage } from "@/components/stores/Language";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Combobox, ComboboxContent, ComboboxItem, ComboboxTrigger } from "@/components/ui/combobox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getLanguage } from "@/lib/api/application";
@@ -9,11 +11,8 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Languages from "lucide-solid/icons/languages";
 import Loader2 from "lucide-solid/icons/loader-2";
-import { createMemo, createSignal, ErrorBoundary, For, Show, Suspense } from "solid-js";
+import { createSignal, For, Show, Suspense } from "solid-js";
 import { toast } from "solid-sonner";
-import { Badge } from "../../../../components/ui/badge";
-import { Button } from "../../../../components/ui/button";
-import { UserAgentDisplay } from "../../../../components/UserAgentDisplay";
 
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);

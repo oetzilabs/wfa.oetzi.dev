@@ -40,7 +40,7 @@ export module Workflows {
     return user;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;
@@ -67,7 +67,7 @@ export module Workflows {
     });
   };
 
-  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_user_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_user_id.success) throw is_valid_user_id.issues;
     return tsx.query.workflows.findMany({
@@ -95,7 +95,7 @@ export module Workflows {
       .returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;
@@ -103,7 +103,7 @@ export module Workflows {
     return update({ id, deletedAt: new Date() }, tsx);
   };
 
-  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;
@@ -111,7 +111,7 @@ export module Workflows {
     return tsx.delete(workflows).where(eq(workflows.id, is_valid_workflow_id.output)).returning();
   };
 
-  export const lastCreatedByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const lastCreatedByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;
@@ -124,11 +124,7 @@ export module Workflows {
       .limit(1);
   };
 
-  export const addStep = async (
-    id: InferInput<typeof Validator.Cuid2Schema>,
-    stepId: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db,
-  ) => {
+  export const addStep = async (id: Validator.Cuid2SchemaInput, stepId: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;
@@ -142,11 +138,7 @@ export module Workflows {
       .values({ workflow_id: is_valid_workflow_id.output, step_id: is_valid_step_id.output });
   };
 
-  export const removeStep = async (
-    id: InferInput<typeof Validator.Cuid2Schema>,
-    stepId: InferInput<typeof Validator.Cuid2Schema>,
-    tsx = db,
-  ) => {
+  export const removeStep = async (id: Validator.Cuid2SchemaInput, stepId: Validator.Cuid2SchemaInput, tsx = db) => {
     const is_valid_workflow_id = safeParse(Validator.Cuid2Schema, id);
     if (!is_valid_workflow_id.success) {
       throw is_valid_workflow_id.issues;

@@ -75,7 +75,7 @@ export module Organizations {
     return org!;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid) throw new Error("Invalid id");
     return tsx.query.organizations.findFirst({
@@ -101,7 +101,7 @@ export module Organizations {
     });
   };
 
-  export const findByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.organizations.findMany({
@@ -115,7 +115,7 @@ export module Organizations {
     });
   };
 
-  export const lastCreatedByUserId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const lastCreatedByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.organizations.findFirst({
@@ -136,13 +136,13 @@ export module Organizations {
     return tsx.update(organizations).set(isValid.output).where(eq(organizations.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return update({ id, deletedAt: new Date() }, tsx);
   };
 
-  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;

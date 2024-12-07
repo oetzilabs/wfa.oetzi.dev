@@ -9,7 +9,7 @@ export function StorageStatistics() {
     <Suspense fallback={<div class="flex items-center justify-center">Loading...</div>}>
       <Show when={storage() && storage()}>
         {(s) => (
-          <div class="flex flex-col w-full gap-2 p-2 pb-0 border-b-0 border-neutral-200 dark:border-neutral-800">
+          <div class="flex flex-col w-full gap-2 p-4 pb-0 border-b-0 border-neutral-200 dark:border-neutral-800">
             <div class="flex flex-col w-full gap-2 bg-neutral-100 dark:bg-neutral-800 rounded-sm border border-neutral-200 dark:border-neutral-800">
               <div class="grid w-full grid-cols-1 md:grid-cols-3 gap-2">
                 <div class="w-full flex flex-col gap-4 border-b border-r-0 border-neutral-200 dark:border-neutral-800 md:border-b-0 md:border-r p-4 last:border-b-0 last:border-r-0">

@@ -59,7 +59,7 @@ export default function DashboardPage() {
             >
               {(c) => (
                 <div class="flex flex-col w-full grow relative">
-                  <div class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 p-2 gap-2">
+                  <div class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 p-4 gap-2">
                     <h2 class="text-2xl font-bold leading-none">
                       Welcome {Math.abs(dayjs(s().createdAt).diff(dayjs(), "minutes")) > 5 ? "back" : ""} to {c().name}
                     </h2>
@@ -92,11 +92,14 @@ export default function DashboardPage() {
                         {(app) => (
                           <span class="flex flex-row gap-1 items-center">
                             You are currently on
-                            <Badge variant="outline" class="px-1.5 group">
-                              <span>{app().name}</span>
-                              <div class="group-hover:flex hidden">
+                            <Badge variant="outline" class="px-1.5 group gap-2 py-0 h-auto pr-0">
+                              <span class="py-0.5 group-hover:pr-0 pr-1.5">{app().name}</span>
+                              <A
+                                class="group-hover:flex hidden cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 h-full p-1 rounded-sm rounded-tl-none rounded-bl-none"
+                                href="/dashboard/applications"
+                              >
                                 <Wrench class="size-3" />
-                              </div>
+                              </A>
                             </Badge>
                           </span>
                         )}

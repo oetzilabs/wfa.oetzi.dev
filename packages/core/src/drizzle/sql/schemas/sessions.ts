@@ -7,6 +7,7 @@ import { schema } from "./utils";
 
 export const sessions = schema.table("session", (t) => ({
   id: t.text("id").primaryKey(),
+  cookie_token: t.text("cookie_token").notNull(),
   createdAt: t
     .timestamp("created_at", {
       withTimezone: true,

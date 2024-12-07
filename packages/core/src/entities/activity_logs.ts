@@ -57,7 +57,7 @@ export module ActivityLogs {
     return user;
   };
 
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -70,7 +70,7 @@ export module ActivityLogs {
     });
   };
 
-  export const findByApplicationId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByApplicationId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.activity_logs.findMany({
@@ -81,7 +81,7 @@ export module ActivityLogs {
     });
   };
 
-  export const findByWorkflowId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByWorkflowId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.activity_logs.findMany({
@@ -92,7 +92,7 @@ export module ActivityLogs {
     });
   };
 
-  export const findByStepId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByStepId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.activity_logs.findMany({
@@ -103,7 +103,7 @@ export module ActivityLogs {
     });
   };
 
-  export const findByTaskId = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const findByTaskId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.activity_logs.findMany({
@@ -122,7 +122,7 @@ export module ActivityLogs {
     return tsx.update(activity_logs).set(isValid.output).where(eq(activity_logs.id, isValid.output.id)).returning();
   };
 
-  export const remove = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const remove = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;
@@ -130,7 +130,7 @@ export module ActivityLogs {
     return update({ id, deletedAt: new Date() }, tsx);
   };
 
-  export const forceDelete = async (id: InferInput<typeof Validator.Cuid2Schema>, tsx = db) => {
+  export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) {
       throw isValid.issues;

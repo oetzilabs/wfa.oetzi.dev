@@ -21,7 +21,7 @@ export module Notifications {
   export type Types = InferOutput<typeof Notifications.Types>;
 
   export const allNonHiddenByUser = async (
-    user_id: InferInput<typeof Validator.Cuid2Schema>,
+    user_id: Validator.Cuid2SchemaInput,
     type: Notifications.Types,
     tsx = db,
   ) => {
@@ -119,9 +119,9 @@ export module Notifications {
   };
 
   export const userHidesById = async (
-    notification_id: InferInput<typeof Validator.Cuid2Schema>,
+    notification_id: Validator.Cuid2SchemaInput,
     type: Notifications.Types,
-    user_id: InferInput<typeof Validator.Cuid2Schema>,
+    user_id: Validator.Cuid2SchemaInput,
     tsx = db,
   ) => {
     const isValid = safeParse(Notifications.Types, type);
@@ -168,7 +168,7 @@ export module Notifications {
         break;
     }
   };
-  export const findById = async (id: InferInput<typeof Validator.Cuid2Schema>, type: Notifications.Types, tsx = db) => {
+  export const findById = async (id: Validator.Cuid2SchemaInput, type: Notifications.Types, tsx = db) => {
     const isValid = safeParse(Notifications.Types, type);
     if (!isValid.success) {
       throw isValid.issues;

@@ -62,7 +62,7 @@ const Statistic = (props: {
 export function Statistics() {
   const stats = createAsync(() => getStatistics());
   return (
-    <div class="flex flex-col w-full gap-2 p-2 border-b border-neutral-200 dark:border-neutral-800">
+    <div class="flex flex-col w-full gap-2 p-4 border-b border-neutral-200 dark:border-neutral-800">
       <div class="grid grid-flow-col md:grid-cols-4 gap-0 w-full border border-neutral-200 dark:border-neutral-800 rounded-sm overflow-clip">
         <Suspense
           fallback={

@@ -1,6 +1,6 @@
 import type { Validator } from "@wfa/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, redirect } from "@solidjs/router";
+import { action, json, redirect, revalidate } from "@solidjs/router";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Auth } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
@@ -12,6 +12,9 @@ export const createApplication = action(
     const [ctx, event] = await ensureAuthenticated();
     const _data = Object.assign(data, { owner_id: ctx.user.id });
     const app = await Applications.create(_data);
+    if (!app) {
+      throw new Error("Could not create application");
+    }
 
     const oldSession = ctx.session;
 
@@ -28,11 +31,39 @@ export const createApplication = action(
     Auth.setSessionCookie(event, sessionToken);
     event.context.session = session;
 
-    throw redirect("/dashboard", {
+    throw redirect("/dashboard/applications/" + app.id, {
       revalidate: [getAuthenticatedSession.key],
     });
   },
 );
+
+export const chooseApplication = action(async (id: Validator.Cuid2SchemaInput) => {
+  "use server";
+  const [ctx, event] = await ensureAuthenticated();
+
+  const app = await Applications.findById(id);
+
+  if (!app) {
+    throw new Error("Application not found");
+  }
+
+  if (app.owner?.id !== ctx.user.id) {
+    throw new Error("You are not the owner of this application");
+  }
+
+  const oldSession = ctx.session;
+
+  const session = await Auth.updateSession(oldSession.cookie_token, {
+    ...oldSession,
+    application_id: app?.id,
+  });
+
+  event.context.session = session;
+
+  throw redirect("/dashboard", {
+    revalidate: [getAuthenticatedSession.key],
+  });
+});
 
 export const joinApplication = action(async (name: string) => {
   "use server";
@@ -49,7 +80,7 @@ export const joinApplication = action(async (name: string) => {
   return true;
 });
 
-export const removeApplication = action(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+export const removeApplication = action(async (id: Validator.Cuid2SchemaInput) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -71,17 +102,11 @@ export const removeApplication = action(async (id: InferInput<typeof Validator.C
 
   const oldSession = ctx.session;
 
-  // invalidate session
-  await Auth.invalidateSession(oldSession.id);
-
-  const sessionToken = Auth.generateSessionToken();
-
-  const session = await Auth.createSession(sessionToken, {
+  const session = await Auth.updateSession(oldSession.cookie_token, {
     ...oldSession,
     application_id: null,
   });
 
-  Auth.setSessionCookie(event, sessionToken);
   event.context.session = session;
 
   throw redirect("/dashboard", {
@@ -89,7 +114,7 @@ export const removeApplication = action(async (id: InferInput<typeof Validator.C
   });
 });
 
-export const getApplicationById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+export const getApplicationById = async (id: Validator.Cuid2SchemaInput) => {
   "use server";
   if (!id) return undefined;
   const [ctx, event] = await ensureAuthenticated();
@@ -126,5 +151,7 @@ export const updateApplication = action(async (data: InferInput<typeof Applicati
     throw new Error("Failed to update organization");
   }
 
-  return updated;
+  return json(updated, {
+    revalidate: [getAuthenticatedSession.key],
+  });
 });

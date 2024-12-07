@@ -1,4 +1,16 @@
-import { cuid2, email, minValue, number, pipe, safeParse, string, transform, ValiError } from "valibot";
+import {
+  cuid2,
+  email,
+  InferInput,
+  InferOutput,
+  minValue,
+  number,
+  pipe,
+  safeParse,
+  string,
+  transform,
+  ValiError,
+} from "valibot";
 import { z } from "zod";
 
 export module Validator {
@@ -42,6 +54,9 @@ export module Validator {
       }
     }),
   );
+
+  export type Cuid2SchemaOutput = InferOutput<typeof Cuid2Schema>;
+  export type Cuid2SchemaInput = InferInput<typeof Cuid2Schema>;
 
   export const MinZeroSchema = pipe(number(), minValue(0));
 }

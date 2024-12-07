@@ -1,0 +1,1 @@
+ALTER TABLE "workflowautomation"."session" ADD COLUMN "cookie_token" text NOT NULL;

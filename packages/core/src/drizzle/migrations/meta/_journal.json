@@ -15,6 +15,13 @@
       "when": 1732815050152,
       "tag": "0001_silent_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1733603608400,
+      "tag": "0002_minor_mindworm",
+      "breakpoints": true
     }
   ]
 }

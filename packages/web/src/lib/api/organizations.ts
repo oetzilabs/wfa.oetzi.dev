@@ -1,6 +1,6 @@
 import type { Validator } from "@wfa/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, redirect } from "@solidjs/router";
+import { action, json, redirect } from "@solidjs/router";
 import { Organizations } from "@wfa/core/src/entities/organizations";
 import { Auth } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
@@ -15,20 +15,14 @@ export const createOrganization = action(
 
     const oldSession = ctx.session;
 
-    // invalidate session
-    await Auth.invalidateSession(oldSession.id);
-
-    const sessionToken = Auth.generateSessionToken();
-
-    const session = await Auth.createSession(sessionToken, {
+    const session = await Auth.updateSession(oldSession.cookie_token, {
       ...oldSession,
       organization_id: org.id,
     });
 
-    Auth.setSessionCookie(event, sessionToken);
     event.context.session = session;
 
-    throw redirect("/dashboard", {
+    throw redirect("/dashboard/organizations/" + org.id, {
       revalidate: [getAuthenticatedSession.key],
     });
   },
@@ -49,7 +43,7 @@ export const joinOrganization = action(async (name: string) => {
   return true;
 });
 
-export const removeOrganization = action(async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+export const removeOrganization = action(async (id: Validator.Cuid2SchemaInput) => {
   "use server";
   const [ctx, event] = await ensureAuthenticated();
 
@@ -71,17 +65,11 @@ export const removeOrganization = action(async (id: InferInput<typeof Validator.
 
   const oldSession = ctx.session;
 
-  // invalidate session
-  await Auth.invalidateSession(oldSession.id);
-
-  const sessionToken = Auth.generateSessionToken();
-
-  const session = await Auth.createSession(sessionToken, {
+  const session = await Auth.updateSession(oldSession.cookie_token, {
     ...oldSession,
     organization_id: null,
   });
 
-  Auth.setSessionCookie(event, sessionToken);
   event.context.session = session;
 
   throw redirect("/dashboard", {
@@ -89,7 +77,7 @@ export const removeOrganization = action(async (id: InferInput<typeof Validator.
   });
 });
 
-export const getOrganizationById = async (id: InferInput<typeof Validator.Cuid2Schema>) => {
+export const getOrganizationById = async (id: Validator.Cuid2SchemaInput) => {
   "use server";
   if (!id) return undefined;
   const [ctx, event] = await ensureAuthenticated();
@@ -122,5 +110,7 @@ export const updateOrganization = action(async (data: InferInput<typeof Organiza
     throw new Error("Failed to update organization");
   }
 
-  return updated;
+  return json(updated, {
+    revalidate: [getAuthenticatedSession.key],
+  });
 });
