@@ -1,13 +1,19 @@
 import { any, flatten, GenericSchema, InferInput, InferOutput, safeParse } from "valibot";
 
-// Task Collection module
 export module TaskGenerator {
-  // Interface for defining a task
+  // Updated CreateFunctionSchema with relaxed type constraints
+  export interface CreateFunctionSchema<I, O> {
+    name: string;
+    input: GenericSchema<I, I>; // Input schema
+    output: GenericSchema<O, O>; // Success output schema
+    fn: (input: InferOutput<this["input"]>) => Promise<InferOutput<this["output"]>> | InferOutput<this["output"]>;
+  }
+
   export interface CreateSchema<I, O> {
     name: string;
     input: GenericSchema<I, I>; // Input schema
     outputs: {
-      success: GenericSchema<unknown, O>; // Success output schema
+      success: GenericSchema<O, O>; // Success output schema
       error: GenericSchema<unknown, any>; // Error output schema
     };
     fn: (
@@ -15,15 +21,8 @@ export module TaskGenerator {
     ) => Promise<InferOutput<this["outputs"]["success"]>> | InferOutput<this["outputs"]["success"]>;
   }
 
-  export interface CreateFunctionSchema<I, O> {
-    name: string;
-    input: GenericSchema<I, I>; // Input schema
-    output: GenericSchema<unknown, O>; // Success output schema
-    fn: (input: InferInput<this["input"]>) => Promise<InferOutput<this["output"]>> | InferOutput<this["output"]>;
-  }
-
-  export const create = <I, O>(setup: CreateFunctionSchema<I, O>) => {
-    const schema: CreateSchema<I, O> = {
+  export const create = <I, O>(setup: TaskGenerator.CreateFunctionSchema<I, O>) => {
+    const schema: TaskGenerator.CreateSchema<I, O> = {
       name: setup.name,
       input: setup.input,
       fn: setup.fn,
@@ -33,9 +32,7 @@ export module TaskGenerator {
       },
     };
 
-    // Runner function that validates input and output
-    const runner = async (input: InferInput<(typeof schema)["input"]>) =>
-      tryValidateOutput<I, O, typeof schema>(schema, input);
+    const runner = async (input: I) => tryValidateOutput<I, O, typeof schema>(schema, input);
 
     return [schema, runner] as const;
   };
@@ -49,7 +46,7 @@ export module TaskGenerator {
     if (!parseInput.success) {
       return {
         type: "error:input",
-        error: flatten(parseInput.issues), // Flatten input schema issues
+        error: flatten(parseInput.issues),
       } as const;
     }
 
@@ -69,11 +66,10 @@ export module TaskGenerator {
     if (!parsedOutput.success) {
       return {
         type: "error:success",
-        error: flatten(parsedOutput.issues), // Flatten success schema issues
+        error: flatten(parsedOutput.issues),
       } as const;
     }
 
-    // Return success
     return {
       type: "success",
       data: parsedOutput.output as InferOutput<typeof SuccessSchema>,

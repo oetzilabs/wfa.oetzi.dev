@@ -47,11 +47,11 @@ export default function CreateApplicationPage() {
 
   const [confirmRemovalModalOpen, setConfirmRemovalModalOpen] = createSignal(false);
 
-  const copyToClipboard = createMutation(() => ({
-    key: ["copyToClipboard"],
+  const copyTokenToClipboard = createMutation(() => ({
+    key: ["copyTokenToClipboard"],
     mutationFn: async (text: string) => {
       if (!window) {
-        throw new Error("Window not available");
+        throw new Error("Window is not available");
       }
       if (!window.navigator) {
         throw new Error("Navigator API not available");
@@ -107,7 +107,7 @@ export default function CreateApplicationPage() {
                                   size="icon"
                                   variant="link"
                                   onClick={() =>
-                                    toast.promise(copyToClipboard.mutateAsync(app.token), {
+                                    toast.promise(copyTokenToClipboard.mutateAsync(app.token), {
                                       loading: "Copying...",
                                       success: "Copied",
                                       error: "Failed to copy",

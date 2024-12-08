@@ -1,22 +1,38 @@
-import { array, date, literal, number, picklist, record, strictObject, variant } from "valibot";
+import {
+  array,
+  boolean,
+  date,
+  fallback,
+  literal,
+  number,
+  optional,
+  picklist,
+  record,
+  strictObject,
+  variant,
+} from "valibot";
+import { ConfigSchema } from "./config";
 import { TaskGenerator } from "./generator";
 
 const currencies = picklist(["eur", "usd", "chf", "gbp"]);
 
-export const [ExchangeSchema, exchange] = TaskGenerator.create({
+const CurrencyExchangeSchema = strictObject({
+  from: currencies,
+  to: array(currencies),
+  value: fallback(number(), 1),
+  ...ConfigSchema.entries,
+});
+
+export const Exchange = TaskGenerator.create({
   name: "currency-exchange",
   input: variant("date", [
     strictObject({
       date: date(),
-      from: currencies,
-      to: array(currencies),
-      value: number(),
+      ...CurrencyExchangeSchema.entries,
     }),
     strictObject({
       date: literal("latest"),
-      from: currencies,
-      to: array(currencies),
-      value: number(),
+      ...CurrencyExchangeSchema.entries,
     }),
   ]),
   output: record(currencies, number()),
@@ -27,17 +43,17 @@ export const [ExchangeSchema, exchange] = TaskGenerator.create({
       date = `${input.date.getFullYear()}.${input.date.getMonth() + 1}.${input.date.getDate()}`;
       dateFallback = `${input.date.getFullYear()}-${input.date.getMonth() + 1}-${input.date.getDate()}`;
     }
-    console.log(`Fetching data for ${input.from} to (${input.to.join(", ")}) on ${date}`);
+    if (input.config?.logging) console.log(`Fetching data for ${input.from} to (${input.to.join(", ")}) on ${date}`);
 
     const url = `https://${dateFallback}.currency-api.pages.dev/v1/currencies/${input.from.toLowerCase()}.json`;
     const fallbackUrl = `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/${input.from.toLowerCase()}.json`;
     let workingUrl = url;
 
-    console.log(`Loading data from ${workingUrl}`);
+    if (input.config?.logging) console.log(`Loading data from ${workingUrl}`);
     let response = await fetch(url);
     if (!response.ok) {
       workingUrl = fallbackUrl;
-      console.log(`Loading data from ${workingUrl}`);
+      if (input.config?.logging) console.log(`Loading data from ${workingUrl}`);
       response = await fetch(fallbackUrl);
     }
     if (!response.ok) {
@@ -70,10 +86,12 @@ export const [ExchangeSchema, exchange] = TaskGenerator.create({
   },
 });
 
-const result = await exchange({
-  date: "latest",
-  from: "eur",
-  to: ["usd", "chf"],
-  value: 100,
-});
-console.log(result);
+export const [ExchangeSchema, exchange] = Exchange;
+
+// const result = await exchange({
+//   date: "latest",
+//   from: "eur",
+//   to: ["usd", "chf"],
+//   value: 100,
+// });
+// console.log(result);
