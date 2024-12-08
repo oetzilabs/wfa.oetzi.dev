@@ -27,4 +27,4 @@ const Funny_HelloWorld_CurrencyExchanger = TaskConnector.pipe({
 // Run the resulting task
 const [HelloWorldCurrencyExchangerSchema, HelloWorldCurrencyExchangeRunner] = Funny_HelloWorld_CurrencyExchanger;
 const finalResult = await HelloWorldCurrencyExchangeRunner({ name: "1000", config: { logging: true } });
-// console.log(finalResult);
+console.log(finalResult);
