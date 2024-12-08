@@ -1,6 +1,6 @@
 import type { Executor } from "./executor";
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { join } from "node:path";
 import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
@@ -20,11 +20,11 @@ export module Tasks {
     owner_id: Validator.Cuid2Schema,
   });
 
-  export const UpdateSchema = intersect([
-    partial(Tasks.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Tasks.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.tasks.findFirst>[0]>["with"];
   export const _with: WithOptions = {
@@ -78,7 +78,7 @@ export module Tasks {
       where: (fields, ops) =>
         ops.inArray(
           fields.id,
-          step_tasks.map((s_t) => s_t.task_id)
+          step_tasks.map((s_t) => s_t.task_id),
         ),
       with: {
         ...Tasks._with,
@@ -165,7 +165,7 @@ export module Tasks {
     taskId: Validator.Cuid2SchemaInput,
     environment: InferInput<typeof EnvironmentSchema>,
     from: Cfg.Storage,
-    tsx = db
+    tsx = db,
   ) => {
     const is_valid_task_id = safeParse(Validator.Cuid2Schema, taskId);
     if (!is_valid_task_id.success) {
@@ -180,14 +180,14 @@ export module Tasks {
       throw new Error("Task not found");
     }
     const path = [environment.application_id, environment.workflow_id, environment.steps_id, environment.task_id].join(
-      "/"
+      "/",
     );
     return Downloader.getFolder(`v0.0.1/${path}`, from);
   };
 
   export const loadScript = async (
     env: Awaited<ReturnType<typeof Tasks.getEnvironment>>,
-    from: Cfg.Storage
+    from: Cfg.Storage,
   ): Promise<Executor.ScriptRunner> => {
     let script: string = "";
     const scriptPath = "/scripts/main.js";
@@ -212,7 +212,7 @@ export module Tasks {
     scriptRunner: SR,
     taskFolder: Awaited<ReturnType<typeof VFS.getFolder>>,
     home: Executor.PreparedEnvironment["home"] = Cfg.DEFAULT_HOME,
-    options: Partial<Executor.PreparedEnvironmentOptions> = Cfg.DEFAULT_TASK_RUNNER
+    options: Partial<Executor.PreparedEnvironmentOptions> = Cfg.DEFAULT_TASK_RUNNER,
   ): Promise<Executor.PreparedEnvironment> => {
     const activity_log = await ActivityLogs.create({
       run_by_user_id: user.id,
@@ -228,7 +228,7 @@ export module Tasks {
     const script = scriptRunner.script;
     const scriptPath = scriptRunner.scriptPath;
     // make a folder for the environemnt to live in
-    const environmentPath = path.join("tmp", `/environments/${activity_log.id}`);
+    const environmentPath = join("tmp", `/environments/${activity_log.id}`);
 
     try {
       await mkdir(environmentPath, { recursive: true });
@@ -255,7 +255,7 @@ export module Tasks {
   const copyFiles = async <P extends string, IP extends { path: string }>(
     environmentPath: string,
     folder: VFS.VFSFolder<P>,
-    ignorePaths: IP[] = []
+    ignorePaths: IP[] = [],
   ) => {
     for (const entity of folder.contents) {
       if (entity.type === "file" && ignorePaths.some((ignorePath) => entity.path.startsWith(ignorePath.path))) {

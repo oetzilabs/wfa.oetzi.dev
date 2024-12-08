@@ -30,11 +30,11 @@ export module ActivityLogs {
     output: optional(nullable(any())),
   });
 
-  export const UpdateSchema = intersect([
-    partial(ActivityLogs.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...partial(ActivityLogs.CreateSchema).entries,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.activity_logs.findFirst>[0]>["with"];
   export const _with: WithOptions = {

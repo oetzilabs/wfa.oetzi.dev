@@ -1,5 +1,5 @@
 import type { Notifications } from "@wfa/core/src/entities/notifications";
-import Sidebar from "@/components/Sidebar";
+import SidebarComponent from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { getAuthenticatedSession } from "@/lib/auth/util";
 import { concat } from "@solid-primitives/signal-builders";
@@ -16,6 +16,7 @@ import { Accessor, createEffect, createSignal, onCleanup, Show, Suspense } from 
 import { isServer } from "solid-js/web";
 import { toast } from "solid-sonner";
 import { Transition } from "solid-transition-group";
+import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
 import { getAllNotifications, hideNotification } from "../../lib/api/notifications";
 
 export const route = {
@@ -182,30 +183,35 @@ export default function DashboardLayout(props: RouteSectionProps) {
     <div class="w-full flex flex-col gap-4 h-[calc(100vh-60px)] grow">
       <div class="flex flex-col grow w-full h-full">
         <div class="flex flex-row gap-0 w-full h-full relative">
-          <Sidebar />
-          <div class="flex flex-col w-full h-full overflow-y-scroll">
-            <div class="flex flex-col gap-0 w-full grow">
-              <Suspense
-                fallback={
-                  <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
-                    <Loader2 class="size-4 animate-spin" />
-                  </div>
-                }
-              >
-                <Show when={allNotifications() && allNotifications()}>
-                  {(ns) => (
-                    <NotificationList
-                      list={ns}
-                      onHide={async (id, type) => {
-                        await hideNotificationAction(id, type);
-                      }}
-                    />
-                  )}
-                </Show>
-              </Suspense>
-              {props.children}
+          <SidebarProvider>
+            <SidebarComponent />
+            <div class="flex flex-col w-full h-full overflow-y-scroll">
+              <div class="p-2 z-50 w-full">
+                <SidebarTrigger />
+              </div>
+              <div class="flex flex-col gap-0 w-full grow">
+                <Suspense
+                  fallback={
+                    <div class="flex flex-col w-full py-10 gap-4 items-center justify-center">
+                      <Loader2 class="size-4 animate-spin" />
+                    </div>
+                  }
+                >
+                  <Show when={allNotifications() && allNotifications()}>
+                    {(ns) => (
+                      <NotificationList
+                        list={ns}
+                        onHide={async (id, type) => {
+                          await hideNotificationAction(id, type);
+                        }}
+                      />
+                    )}
+                  </Show>
+                </Suspense>
+                {props.children}
+              </div>
             </div>
-          </div>
+          </SidebarProvider>
         </div>
       </div>
     </div>

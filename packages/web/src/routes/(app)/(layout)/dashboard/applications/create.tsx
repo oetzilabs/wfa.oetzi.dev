@@ -56,8 +56,8 @@ export default function CreateApplicationPage() {
       >
         <Show when={session() && session()}>
           {(s) => (
-            <div class="p-1 w-full h-full grow flex flex-col">
-              <div class="flex flex-col w-full gap-2 p-4 rounded-sm h-full grow">
+            <div class="p-4 pt-0 w-full h-full grow flex flex-col">
+              <div class="flex flex-col w-full gap-2 rounded-sm h-full grow">
                 <h2 class="text-lg font-bold leading-none">Create an Application</h2>
                 <div class="flex flex-col gap-2 max-w-xl">
                   <Form class="flex flex-col gap-2 w-full" onSubmit={handleSubmit} keepResponse>

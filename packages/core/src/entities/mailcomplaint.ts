@@ -32,10 +32,10 @@ export module MailComplaint {
 
   export type ComplaintType = InferOutput<typeof ComplaintType>;
 
-  export const UpdateSchema = intersect([
-    partial(MailComplaint.CreateSchema),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...partial(MailComplaint.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.mailcomplaint.findFirst>[0]>["with"];
   export const _with: WithOptions = {};

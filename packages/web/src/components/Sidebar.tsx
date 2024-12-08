@@ -1,47 +1,86 @@
+import type { LucideProps } from "lucide-solid";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuButtonProps,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { createAsync } from "@solidjs/router";
+import { A, createAsync } from "@solidjs/router";
+import Boxes from "lucide-solid/icons/boxes";
 import Cpu from "lucide-solid/icons/cpu";
 import Files from "lucide-solid/icons/files";
 import Home from "lucide-solid/icons/home";
 import Settings from "lucide-solid/icons/settings";
-import { Show } from "solid-js";
-import NavLink from "./NavLink";
+import { For, JSX, Show } from "solid-js";
+import NavLink, { NavLinkProps } from "./NavLink";
+import UserMenu from "./UserMenu";
 
-export default function Sidebar() {
+type Item = SidebarMenuButtonProps &
+  NavLinkProps & {
+    icon: (props: LucideProps) => JSX.Element;
+  };
+export default function SidebarComponent() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
+  const items: Array<Item> = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: Boxes,
+      exact: true,
+    },
+    {
+      title: "Applications",
+      href: "/dashboard/applications",
+      icon: Cpu,
+      exact: true,
+    },
+    {
+      title: "Documents",
+      href: "/dashboard/documents",
+      icon: Files,
+      exact: true,
+    },
+    {
+      title: "Settings",
+      href: "/settings",
+      icon: Settings,
+      exact: true,
+    },
+  ];
 
   return (
-    <div class="flex flex-col w-[250px] h-full grow">
-      <div class="flex flex-col grow w-full h-full">
-        <nav class="flex flex-col w-full border-r border-neutral-200 dark:border-neutral-800 grow h-full">
-          <div class="flex flex-col w-full items-center h-full grow p-4 gap-2">
-            <Show when={session() && session()!.user !== null}>
-              {(s) => (
-                <>
-                  <NavLink exact href="/dashboard">
-                    <Home class="size-4" />
-                    <span class="sr-only lg:not-sr-only">Dashboard</span>
-                  </NavLink>
-                  <NavLink href="/dashboard/applications">
-                    <Cpu class="size-4" />
-                    <span class="sr-only lg:not-sr-only">Applications</span>
-                  </NavLink>
-                  <NavLink href="/dashboard/documents">
-                    <Files class="size-4" />
-                    <span class="sr-only lg:not-sr-only">Documents</span>
-                  </NavLink>
-                  <NavLink href="/settings">
-                    <Settings class="size-4" />
-                    <span class="sr-only lg:not-sr-only">Settings</span>
-                  </NavLink>
-                  <div class="flex grow w-full" />
-                  <div class="w-full h-10"></div>
-                </>
-              )}
-            </Show>
-          </div>
-        </nav>
-      </div>
-    </div>
+    <Sidebar>
+      {/* <SidebarHeader></SidebarHeader> */}
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <For each={items}>
+                {(item) => (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton as={NavLink} href={item.href} exact={item.exact}>
+                      <item.icon class="size-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </For>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <Show when={session() && session()!.user !== null && session()}>{(s) => <UserMenu user={s().user!} />}</Show>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

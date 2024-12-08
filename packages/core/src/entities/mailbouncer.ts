@@ -90,10 +90,10 @@ export module MailBouncer {
     return safeParse(picklist(BounceSubType(t)), s);
   };
 
-  export const UpdateSchema = intersect([
-    partial(MailBouncer.CreateSchema),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...partial(MailBouncer.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.mailbouncer.findFirst>[0]>["with"];
   export const _with: WithOptions = {};

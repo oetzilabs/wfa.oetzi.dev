@@ -1,5 +1,23 @@
 import { desc, eq } from "drizzle-orm";
-import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
+import {
+  date,
+  flatten,
+  InferInput,
+  InferOutput,
+  intersect,
+  null as null_,
+  nullable,
+  object,
+  objectWithRest,
+  optional,
+  partial,
+  Prettify,
+  safeParse,
+  safeParser,
+  strictObject,
+  string,
+  ValiError,
+} from "valibot";
 import { db } from "../drizzle/sql";
 import { applications } from "../drizzle/sql/schemas/applications";
 import { Validator } from "../validator";
@@ -11,18 +29,40 @@ export module Applications {
     owner_id: Validator.Cuid2Schema,
   });
 
-  export const UpdateSchema = intersect([
-    partial(Applications.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Applications.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.applications.findFirst>[0]>["with"];
   export const _with: WithOptions = {
     owner: true,
+    workflows: {
+      with: {
+        workflow: {
+          with: {
+            steps: {
+              with: {
+                step: {
+                  with: {
+                    tasks: {
+                      with: {
+                        task: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   };
 
   export type Info = NonNullable<Awaited<ReturnType<typeof Applications.findById>>>;
+  export type UpdateInfo = Prettify<InferOutput<typeof Applications.UpdateSchema>>;
 
   export const create = async (data: InferInput<typeof Applications.CreateSchema>, tsx = db) => {
     const isValid = safeParse(Applications.CreateSchema, data);
@@ -43,6 +83,27 @@ export module Applications {
       where: (fields, ops) => ops.eq(fields.id, isValid.output),
       with: {
         ...Applications._with,
+        workflows: {
+          with: {
+            workflow: {
+              with: {
+                steps: {
+                  with: {
+                    step: {
+                      with: {
+                        tasks: {
+                          with: {
+                            task: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   };
@@ -52,6 +113,27 @@ export module Applications {
       where: (fields, ops) => ops.eq(fields.token, token),
       with: {
         ...Applications._with,
+        workflows: {
+          with: {
+            workflow: {
+              with: {
+                steps: {
+                  with: {
+                    step: {
+                      with: {
+                        tasks: {
+                          with: {
+                            task: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   };
@@ -61,6 +143,27 @@ export module Applications {
       where: (fields, ops) => ops.eq(fields.name, name),
       with: {
         ...Applications._with,
+        workflows: {
+          with: {
+            workflow: {
+              with: {
+                steps: {
+                  with: {
+                    step: {
+                      with: {
+                        tasks: {
+                          with: {
+                            task: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   };
@@ -69,17 +172,40 @@ export module Applications {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
     return tsx.query.applications.findMany({
-      where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
+      where: (fields, ops) => ops.and(ops.eq(fields.owner_id, isValid.output), ops.isNull(fields.deletedAt)),
       with: {
         ...Applications._with,
+        workflows: {
+          with: {
+            workflow: {
+              with: {
+                steps: {
+                  with: {
+                    step: {
+                      with: {
+                        tasks: {
+                          with: {
+                            task: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   };
 
-  export const update = async (data: InferInput<typeof Applications.UpdateSchema>, tsx = db) => {
+  export const update = async (data: UpdateInfo, tsx = db) => {
     const isValid = safeParse(Applications.UpdateSchema, data);
-    if (!isValid.success) {
-      throw isValid.issues;
+    if (!isValid.typed) {
+      if (!isValid.success) {
+        throw new ValiError(isValid.issues);
+      }
     }
     return tsx.update(applications).set(isValid.output).where(eq(applications.id, isValid.output.id)).returning();
   };
@@ -89,7 +215,8 @@ export module Applications {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return update({ id, deletedAt: new Date() }, tsx);
+    console.log("removing application" + isValid.output);
+    return update({ id: isValid.output, deletedAt: new Date() }, tsx);
   };
 
   export const forceDelete = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
@@ -110,6 +237,27 @@ export module Applications {
       orderBy: [desc(applications.createdAt)],
       with: {
         ...Applications._with,
+        workflows: {
+          with: {
+            workflow: {
+              with: {
+                steps: {
+                  with: {
+                    step: {
+                      with: {
+                        tasks: {
+                          with: {
+                            task: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   };

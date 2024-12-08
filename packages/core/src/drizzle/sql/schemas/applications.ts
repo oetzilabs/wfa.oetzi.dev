@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm";
+import { applications_workflows } from "./applications_workflows";
 import { commonTable, createToken } from "./entity";
 import { users } from "./users";
 
@@ -26,4 +27,5 @@ export const app_relation = relations(applications, ({ many, one }) => ({
     fields: [applications.owner_id],
     references: [users.id],
   }),
+  workflows: many(applications_workflows),
 }));

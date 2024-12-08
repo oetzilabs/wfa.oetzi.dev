@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { AnyPgColumn } from "drizzle-orm/pg-core";
 import { commonTable, createToken } from "./entity";
+import { steps_tasks } from "./steps_tasks";
 import { users } from "./users";
 import { workflows_steps } from "./workflows_steps";
 
@@ -33,4 +34,5 @@ export const steps_relation = relations(steps, ({ one, many }) => ({
     fields: [steps.previous_step_id],
     references: [steps.id],
   }),
+  tasks: many(steps_tasks),
 }));

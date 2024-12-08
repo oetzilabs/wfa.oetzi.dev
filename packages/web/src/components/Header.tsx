@@ -53,36 +53,19 @@ export function Header() {
                 <Sun class="size-4" />
               </Show>
             </Button>
-            <Switch
-              fallback={
-                <A
-                  href="/auth/login"
-                  class={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "flex flex-row gap-2 items-center justify-start w-full",
-                  )}
-                >
-                  <LogIn class="size-4" />
-                  Login
-                </A>
-              }
-            >
-              <Match when={session() && session()!.user !== null && session()!.user}>
-                {(user) => <UserMenu user={user()} />}
-              </Match>
-              <Match when={!session() || session()!.user === null}>
-                <Button
-                  as={A}
-                  href="/auth/login"
-                  variant="outline"
-                  size="sm"
-                  class="flex flex-row gap-2 items-center justify-center w-max"
-                >
-                  <LogIn class="size-3" />
-                  Login
-                </Button>
-              </Match>
-            </Switch>
+
+            <Show when={!session() || session()!.user === null}>
+              <Button
+                as={A}
+                href="/auth/login"
+                variant="outline"
+                size="sm"
+                class="flex flex-row gap-2 items-center justify-center w-max"
+              >
+                <LogIn class="size-3" />
+                Login
+              </Button>
+            </Show>
           </div>
         </div>
       </div>

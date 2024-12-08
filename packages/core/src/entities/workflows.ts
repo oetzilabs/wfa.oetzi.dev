@@ -12,11 +12,11 @@ export module Workflows {
     owner_id: Validator.Cuid2Schema,
   });
 
-  export const UpdateSchema = intersect([
-    partial(Workflows.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Workflows.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.workflows.findFirst>[0]>["with"];
   export const _with: WithOptions = {

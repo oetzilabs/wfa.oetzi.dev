@@ -19,17 +19,21 @@ import User from "lucide-solid/icons/user";
 import { For, Match, Show, Switch } from "solid-js";
 import { logout } from "../utils/api/actions";
 
-export default function UserMenu(props: { user: UserSession["user"] }) {
+export default function UserMenu(props: { user: NonNullable<UserSession["user"]> }) {
   const isLoggingOut = useSubmission(logout);
 
   return (
     <DropdownMenu placement="bottom-end" gutter={4}>
       <DropdownMenuTrigger
         as={Button}
-        variant="default"
-        class="flex flex-row items-center justify-center size-8 p-0 rounded-full"
+        variant="outline"
+        class="flex flex-row items-center justify-start gap-4 w-full h-auto"
       >
-        <User class="size-4" />
+        <User class="size-5" />
+        <div class="flex flex-col gap-0.5 w-full items-start justify-start">
+          <span class="font-bold">Account</span>
+          <span class="text-xs">{props.user?.email ?? "User"}</span>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
@@ -47,6 +51,11 @@ export default function UserMenu(props: { user: UserSession["user"] }) {
             <span>Settings</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem as={A} class="cursor-pointer" href="/dashboard">
+          <Settings class="size-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between">

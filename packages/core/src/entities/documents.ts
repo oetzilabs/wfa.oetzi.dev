@@ -22,16 +22,17 @@ export module Documents {
     app_id: Validator.Cuid2Schema,
     owner_id: Validator.Cuid2Schema,
     filename: string(),
+    folder_id: Validator.Cuid2Schema,
     filepath: string(),
     hash: optional(string()),
     status: optional(picklist(document_statuses)),
   });
 
-  export const UpdateSchema = intersect([
-    partial(Documents.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Documents.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.documents.findFirst>[0]>["with"];
   export const _with: WithOptions = {

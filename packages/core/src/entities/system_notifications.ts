@@ -34,10 +34,10 @@ export module SystemNotifications {
     ]),
   });
 
-  export const UpdateSchema = intersect([
-    partial(SystemNotifications.CreateSchema),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...partial(SystemNotifications.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.system_notifications.findFirst>[0]>["with"];
   export const _with: WithOptions = {};

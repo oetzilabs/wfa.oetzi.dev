@@ -86,7 +86,7 @@
     "solid-transition-group": "0.2.3",
     "tailwind-merge": "2.5.4",
     "tailwindcss-animate": "1.0.7",
-    "valibot": "1.0.0-beta.9",
+    "valibot": "0.42.1",
     "vinxi": "0.4.3",
     "workbox-core": "^7.3.0",
     "workbox-precaching": "^7.3.0",

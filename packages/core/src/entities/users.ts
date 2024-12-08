@@ -24,7 +24,12 @@ export module Users {
     image: optional(nullable(string())),
     verifiedAt: optional(nullable(date())),
   });
-  export const UpdateSchema = intersect([partial(Users.CreateSchema), strictObject({ id: Validator.Cuid2Schema })]);
+
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Users.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
   export const _with: WithOptions = {

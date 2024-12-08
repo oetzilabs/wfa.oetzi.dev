@@ -52,11 +52,11 @@ export module Organizations {
     ),
   });
 
-  export const UpdateSchema = intersect([
-    partial(Organizations.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Organizations.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.organizations.findFirst>[0]>["with"];
   export const _with: WithOptions = {

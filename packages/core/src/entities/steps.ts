@@ -13,11 +13,11 @@ export module Steps {
     owner_id: Validator.Cuid2Schema,
   });
 
-  export const UpdateSchema = intersect([
-    partial(Steps.CreateSchema),
-    strictObject({ deletedAt: optional(nullable(date())) }),
-    strictObject({ id: Validator.Cuid2Schema }),
-  ]);
+  export const UpdateSchema = strictObject({
+    id: Validator.Cuid2Schema,
+    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
+    ...partial(Steps.CreateSchema).entries,
+  });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.steps.findFirst>[0]>["with"];
   export const _with: WithOptions = {

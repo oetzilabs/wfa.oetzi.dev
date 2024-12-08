@@ -59,7 +59,7 @@ export default function DashboardPage() {
             >
               {(c) => (
                 <div class="flex flex-col w-full grow relative">
-                  <div class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 p-4 gap-2">
+                  <div class="flex flex-col w-full border-b border-neutral-200 dark:border-neutral-800 p-4 pt-0  gap-2">
                     <h2 class="text-2xl font-bold leading-none">
                       Welcome {Math.abs(dayjs(s().createdAt).diff(dayjs(), "minutes")) > 5 ? "back" : ""} to {c().name}
                     </h2>
