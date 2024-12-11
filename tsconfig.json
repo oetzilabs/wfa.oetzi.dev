@@ -3,6 +3,6 @@
   "exclude": ["packages/"],
   "compilerOptions": {
     "skipLibCheck": true,
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types", "@types/bun"]
   }
 }

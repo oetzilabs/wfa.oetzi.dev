@@ -55,6 +55,7 @@ export module TaskGenerator {
     try {
       fnResult = await schema.fn(parseInput.output);
     } catch (error) {
+      console.error(error);
       return {
         type: "error:fn",
         error,
