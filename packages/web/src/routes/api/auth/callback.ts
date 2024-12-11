@@ -53,7 +53,7 @@ export async function GET(e: APIEvent) {
 
     event.context.session = session;
 
-    if (user && user.verifiedAt) return sendRedirect(event, "/", 303);
+    if (user && user.verifiedAt) return sendRedirect(event, "/dashboard", 303);
     return sendRedirect(event, "/auth/verify-email", 303);
   } catch (e: any) {
     return sendRedirect(event, "/auth/error?error=" + e.message, 303);
