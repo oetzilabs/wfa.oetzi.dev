@@ -10,12 +10,11 @@ import { getRequestFingerprint, getRequestIP, sendRedirect } from "vinxi/http";
 export async function GET(e: APIEvent) {
   const event = e.nativeEvent;
   const url = new URL(e.request.url);
-  const origin = url.origin;
   const code = url.searchParams.get("code");
   try {
     if (!code) throw new Error("Missing code");
 
-    const tokens = await GoogleClient.exchange(code, origin + "/api/auth/callback");
+    const tokens = await GoogleClient.exchange(code, import.meta.env.VITE_LOGIN_REDIRECT_URI);
 
     const verified = await GoogleClient.verify(subjects, tokens.access!, {
       refresh: tokens.refresh!,
