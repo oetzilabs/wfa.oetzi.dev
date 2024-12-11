@@ -1,9 +1,7 @@
 import { authorizer } from "@openauthjs/openauth";
-import { CodeAdapter } from "@openauthjs/openauth/adapter/code";
-import { GoogleAdapter, GoogleOidcAdapter } from "@openauthjs/openauth/adapter/google";
+import { GoogleOidcAdapter } from "@openauthjs/openauth/adapter/google";
 import { DynamoStorage } from "@openauthjs/openauth/storage/dynamo";
 import { subjects } from "@wfa/core/src/auth/subjects";
-import { Applications } from "@wfa/core/src/entities/application";
 import { Users } from "@wfa/core/src/entities/users";
 import { handle } from "hono/aws-lambda";
 import { StatusCodes } from "http-status-codes";
@@ -18,12 +16,12 @@ export const handler = handle(
     providers: {
       google: GoogleOidcAdapter({
         clientID: Resource.GoogleClientId.value,
-        // clientSecret: Resource.GoogleClientSecret.value,
         scopes: ["openid", "email", "profile"],
       }),
     },
     async success(ctx, input, req) {
       if (input.provider === "google") {
+        // These claims are not always available, because of the JWTPayload from Google.
         const claims = input.id as {
           email: string | undefined;
           preferred_username: string | undefined;
@@ -46,7 +44,7 @@ export const handler = handle(
         let user_ = await Users.findByEmail(email);
 
         if (!user_) {
-          user_ = await Users.create({ email, name, image })!;
+          user_ = await Users.create({ email, name, image, verifiedAt: new Date() })!;
         }
 
         return ctx.subject("user", {
@@ -55,14 +53,6 @@ export const handler = handle(
         });
       }
       throw new Error("Unknown provider");
-    },
-    async error(e, req) {
-      return new Response(e.message, {
-        status: StatusCodes.BAD_REQUEST,
-        headers: {
-          "Content-Type": "text/plain",
-        },
-      });
     },
   }),
 );

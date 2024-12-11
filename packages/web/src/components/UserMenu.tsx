@@ -37,29 +37,29 @@ export default function UserMenu(props: { user: NonNullable<UserSession["user"]>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
-          <DropdownMenuGroupLabel class="flex flex-col gap-0.5">
+          <DropdownMenuGroupLabel
+            class="flex flex-col gap-0.5 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-sm"
+            as={A}
+            href="/profile"
+          >
             <span class="font-bold">My Account</span>
             <span class="text-xs text-muted-foreground font-normal">{props.user!.email}</span>
           </DropdownMenuGroupLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem as={A} class="cursor-pointer" href="/profile">
-            <User class="size-4" />
-            <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem as={A} class="cursor-pointer" href="/settings">
-            <Settings class="size-4" />
-            <span>Settings</span>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem as={A} class="cursor-pointer" href="/dashboard">
+        <DropdownMenuItem>
           <Settings class="size-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between">
-            <span class="font-semibold">Applications</span>
+          <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between pl-0">
+            <A
+              class="font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-900 p-2 py-0.5 w-full rounded-e-sm items-center justify-start"
+              href="/dashboard/applications"
+            >
+              Applications
+            </A>
             <div class="">
               <Button size="icon" class="size-6 p-1" variant="outline" as={A} href="/dashboard/applications/create">
                 <Plus class="size-4" />

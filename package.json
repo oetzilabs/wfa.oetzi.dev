@@ -19,7 +19,7 @@
     "@types/bun": "^1.1.14",
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.6.9",
-    "sst": "3.3.65",
+    "sst": "3.3.68",
     "typescript": "5.7.2"
   },
   "workspaces": [

@@ -3,12 +3,12 @@ import { A, createAsync, useLocation, useResolvedPath } from "@solidjs/router";
 import LogIn from "lucide-solid/icons/log-in";
 import Moon from "lucide-solid/icons/moon";
 import Sun from "lucide-solid/icons/sun";
-import { createMemo, Match, Show, Switch } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import { getAuthenticatedSession } from "../lib/auth/util";
 import { cn } from "../lib/utils";
+import { AppSearch } from "./AppSearch";
 import { Logo } from "./Logo";
-import { Button, buttonVariants } from "./ui/button";
-import UserMenu from "./UserMenu";
+import { Button } from "./ui/button";
 
 export function Header() {
   const session = createAsync(() => getAuthenticatedSession(), { deferStream: true });
@@ -18,6 +18,8 @@ export function Header() {
   const hiddenPaths = ["/auth/login", "/auth/register"];
 
   const isHiddenPath = createMemo(() => hiddenPaths.includes(path() ?? ""));
+
+  const isDashboard = createMemo(() => path()?.includes("/dashboard"));
 
   const { toggleColorMode, colorMode } = useColorMode();
 
@@ -36,9 +38,14 @@ export function Header() {
             <Logo small />
           </A>
         </div>
-        {/* <div class="w-full flex flex-col items-center justify-center container px-0">
-          <AppSearch />
-        </div> */}
+        <div class="w-full flex flex-col items-start justify-center px-4">
+          {/* <AppSearch /> */}
+          <Show when={!isDashboard()}>
+            <A href="/dashboard" class="text-sm font-semibold text-muted-foreground hover:text-foreground">
+              Dashboard
+            </A>
+          </Show>
+        </div>
         <div class="w-max items-center justify-end flex flex-row gap-2">
           <div class="w-max flex text-base gap-2.5">
             <Button
