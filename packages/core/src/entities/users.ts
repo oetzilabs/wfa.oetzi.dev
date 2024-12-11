@@ -38,7 +38,9 @@ export module Users {
         user: true,
       },
     },
-    applications: true,
+    applications: {
+      where: (fields, operators) => operators.isNull(fields.deletedAt),
+    },
 
     sessions: true,
   };
