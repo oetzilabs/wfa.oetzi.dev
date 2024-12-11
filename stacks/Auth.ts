@@ -1,4 +1,4 @@
-import { domain } from "./Domain";
+import { cf, domain } from "./Domain";
 import { allSecrets } from "./Secrets";
 
 const copyFiles = [
@@ -8,16 +8,32 @@ const copyFiles = [
   },
 ];
 
+export const auth_dynomo_table = new sst.aws.Dynamo("AuthDynomoTable", {
+  fields: {
+    pk: "string",
+    sk: "string",
+  },
+  ttl: "expiry",
+  primaryIndex: {
+    hashKey: "pk",
+    rangeKey: "sk",
+  },
+});
+
 export const auth = new sst.aws.Auth(`Auth`, {
-  authenticator: {
+  authorizer: {
     handler: "packages/functions/src/auth.handler",
-    link: [...allSecrets],
+    link: [...allSecrets, auth_dynomo_table],
     environment: {
       AUTH_FRONTEND_URL: $dev ? "http://localhost:3000" : "https://" + domain,
       EMAIL_DOMAIN: domain,
     },
     runtime: "nodejs20.x",
     copyFiles,
+  },
+  domain: {
+    name: $interpolate`auth.${domain}`,
+    dns: cf,
   },
 });
 

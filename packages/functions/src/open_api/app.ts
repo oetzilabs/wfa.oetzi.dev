@@ -1,3 +1,4 @@
+import type { LambdaContext, LambdaEvent } from "hono/aws-lambda";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "hono/logger";
@@ -10,7 +11,10 @@ import { TestRoute } from "./routes/test";
 import { UserRoute } from "./routes/users";
 
 export type Env = {
-  Bindings: {};
+  Bindings: {
+    event: LambdaEvent;
+    lambdaContext: LambdaContext;
+  };
 };
 
 export const createApp = () => {

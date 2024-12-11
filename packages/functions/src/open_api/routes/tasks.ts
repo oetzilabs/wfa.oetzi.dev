@@ -12,11 +12,6 @@ import { ExecutorRoute } from "./executor";
 
 export module TaskRoute {
   const list_tasks = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
     method: "get",
     path: "/",
     request: {
@@ -43,8 +38,21 @@ export module TaskRoute {
           example: "step_nc6bzmkmd014706rfda898to",
         }),
       }),
-      headers: z.object({
-        authorization: AuthorizationHeader,
+      cookies: z.object({
+        access_token: z.string().openapi({
+          param: {
+            name: "access_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
+        refresh_token: z.string().openapi({
+          param: {
+            name: "refresh_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
       }),
     },
     responses: {
@@ -84,11 +92,6 @@ export module TaskRoute {
   });
 
   const main_route = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
     method: "get",
     path: "/{tid}",
     request: {
@@ -122,8 +125,21 @@ export module TaskRoute {
           example: "task_nc6bzmkmd014706rfda898to",
         }),
       }),
-      headers: z.object({
-        authorization: AuthorizationHeader,
+      cookies: z.object({
+        access_token: z.string().openapi({
+          param: {
+            name: "access_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
+        refresh_token: z.string().openapi({
+          param: {
+            name: "refresh_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
       }),
     },
     responses: {
@@ -167,9 +183,9 @@ export module TaskRoute {
     // app.use(main_route.getRoutingPath(), bearer);
     return app
       .openapi(list_tasks, async (c) => {
-        const headers = c.req.valid("header");
+        const cookies = c.req.valid("cookie");
+        const authenticated = await ensureAuthenticated(cookies);
 
-        const authenticated = await ensureAuthenticated(headers.authorization);
         if (!authenticated) {
           return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
         }
@@ -199,13 +215,13 @@ export module TaskRoute {
 
         return c.json(
           tasks.map((t) => ({ id: t.id })),
-          StatusCodes.OK
+          StatusCodes.OK,
         );
       })
       .openapi(main_route, async (c) => {
-        const headers = c.req.valid("header");
+        const cookies = c.req.valid("cookie");
+        const authenticated = await ensureAuthenticated(cookies);
 
-        const authenticated = await ensureAuthenticated(headers.authorization);
         if (!authenticated) {
           return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
         }
@@ -232,7 +248,7 @@ export module TaskRoute {
           {
             id: task.id,
           },
-          StatusCodes.OK
+          StatusCodes.OK,
         );
       })
       .route("/{tid}/run", ExecutorRoute.create());

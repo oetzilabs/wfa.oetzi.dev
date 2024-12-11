@@ -13,7 +13,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 const generateAuthUrl = (provider: string) => {
-  const url = new URL(`${import.meta.env.VITE_AUTH_URL}${provider}/authorize`);
+  const url = new URL(`${import.meta.env.VITE_AUTH_URL}/authorize`);
   url.searchParams.set("provider", provider);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", provider);

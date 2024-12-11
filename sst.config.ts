@@ -46,7 +46,7 @@ export default $config({
       seedUrn: seed.urn,
       dbStudioUrn: studio.urn,
 
-      authUrl: auth.auth.authenticator.url,
+      authUrl: auth.auth.url,
 
       open_api: $interpolate`https://api.${domain}`,
       // open_api_worker_url: hono_open_api_cf.url,

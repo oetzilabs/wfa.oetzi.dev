@@ -9,11 +9,6 @@ import { AuthorizationHeader } from "../middleware/authentication";
 
 export module ExecutorRoute {
   const code_execution_route = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
     method: "post",
     path: "/",
     request: {
@@ -47,8 +42,21 @@ export module ExecutorRoute {
           example: "task_abc123xyz456",
         }),
       }),
-      headers: z.object({
-        authorization: AuthorizationHeader,
+      cookies: z.object({
+        access_token: z.string().openapi({
+          param: {
+            name: "access_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
+        refresh_token: z.string().openapi({
+          param: {
+            name: "refresh_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
       }),
       body: {
         content: {
@@ -117,8 +125,8 @@ export module ExecutorRoute {
 
     return app.openapi(code_execution_route, async (c) => {
       const params = c.req.valid("param");
-      const headers = c.req.valid("header");
-      const authed = await ensureAuthenticated(headers.authorization);
+      const cookies = c.req.valid("cookie");
+      const authed = await ensureAuthenticated(cookies);
       if (!authed.user || !authed.app) {
         return c.json({ error: "Unauthorized" }, StatusCodes.UNAUTHORIZED);
       }

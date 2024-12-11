@@ -9,16 +9,24 @@ import { AuthorizationHeader } from "../middleware/authentication";
 
 export module SessionRoute {
   const app_route = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
     method: "get",
     path: "/application",
     request: {
-      headers: z.object({
-        authorization: AuthorizationHeader,
+      cookies: z.object({
+        access_token: z.string().openapi({
+          param: {
+            name: "access_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
+        refresh_token: z.string().openapi({
+          param: {
+            name: "refresh_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
       }),
     },
     responses: {
@@ -57,16 +65,24 @@ export module SessionRoute {
   });
 
   const user_route = createRoute({
-    security: [
-      {
-        Bearer: [],
-      },
-    ],
     method: "get",
     path: "/user",
     request: {
-      headers: z.object({
-        authorization: AuthorizationHeader,
+      cookies: z.object({
+        access_token: z.string().openapi({
+          param: {
+            name: "access_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
+        refresh_token: z.string().openapi({
+          param: {
+            name: "refresh_token",
+            in: "cookie",
+          },
+          example: "12345678",
+        }),
       }),
     },
     responses: {
@@ -116,10 +132,10 @@ export module SessionRoute {
     // app.use(main_route.getRoutingPath(), bearer);
     app
       .openapi(user_route, async (c) => {
-        const { authorization } = c.req.valid("header");
+        const cookies = c.req.valid("cookie");
 
         try {
-          const user = await getUser(authorization);
+          const user = await getUser(cookies);
           if (!user) {
             return c.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
           }
@@ -140,10 +156,10 @@ export module SessionRoute {
         }
       })
       .openapi(app_route, async (c) => {
-        const { authorization } = c.req.valid("header");
+        const cookies = c.req.valid("cookie");
 
         try {
-          const app = await getApplication(authorization);
+          const app = await getApplication(cookies);
           if (!app) {
             return c.json({ error: "Application not found" }, StatusCodes.NOT_FOUND);
           }

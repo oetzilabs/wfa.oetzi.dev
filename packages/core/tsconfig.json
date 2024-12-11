@@ -2,7 +2,7 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": ["@cloudflare/workers-types", "./sst-env.d.ts", "@types/bun"]
   }
 }

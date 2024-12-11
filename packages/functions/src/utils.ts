@@ -1,101 +1,68 @@
-import { z } from "@hono/zod-openapi";
+import { createClient } from "@openauthjs/openauth";
+import { subjects } from "@wfa/core/src/auth/subjects";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Users } from "@wfa/core/src/entities/users";
-import { APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
-import { createSessionBuilder } from "sst/auth";
-import { sessions } from "./session";
 
-export const AuthenticationSchema = z.strictObject({
-  type: z.enum(["app", "user"]),
-  token: z.string(),
+type Cookies = {
+  access_token: string | undefined;
+  refresh_token: string | undefined;
+};
+
+const client = createClient({
+  clientID: "solidstart",
+  issuer: process.env.OPENAUTH_ISSUER,
 });
 
-export const getUser = async (token: string) => {
-  const splitToken = token.split(" ");
-  if (splitToken.length !== 2) throw new Error("Invalid token");
-  if (splitToken[0] !== "Bearer") throw new Error("Invalid token");
-  const typeToken = splitToken[1].split(":");
-  if (typeToken.length !== 2) throw new Error("Invalid token");
-  if (typeToken[0] !== "user") throw new Error("Invalid token type");
-  const isValid = AuthenticationSchema.safeParse({
-    type: typeToken[0],
-    token: typeToken[1],
-  });
-  if (!isValid.success) {
-    throw new Error("Invalid token");
-  }
-  const session = await sessions.verify(isValid.data.token);
+export const getUser = async (cookies: Cookies) => {
+  const access = cookies.access_token;
+  const refresh = cookies.refresh_token;
+  if (!access || !refresh) throw new Error("No access or refresh token found");
+  const session = await client.verify(subjects, access);
   if (!session) throw new Error("No session found");
-  if (session.type !== "user") {
+  if (session.subject.type !== "user") {
     throw new Error("Invalid session type");
   }
-  const { id } = session.properties;
+  const { id } = session.subject.properties;
   if (!id) throw new Error("Invalid UserID in session");
   const user = await Users.findById(id);
   if (!user) throw new Error("No session found");
   return user;
 };
 
-export const getApplication = async (token: string) => {
-  const splitToken = token.split(" ");
-  if (splitToken.length !== 2) throw new Error("Invalid token");
-  if (splitToken[0] !== "Bearer") throw new Error("Invalid token");
-  const typeToken = splitToken[1].split(":");
-  if (typeToken.length !== 2) throw new Error("Invalid token");
-  if (typeToken[0] !== "app") throw new Error("Invalid token type");
-  const isValid = AuthenticationSchema.safeParse({
-    type: typeToken[0],
-    token: typeToken[1],
-  });
-  if (!isValid.success) {
-    throw new Error("Invalid token");
-  }
-  const session = await sessions.verify(isValid.data.token);
+export const getApplication = async (cookies: Cookies) => {
+  const access = cookies.access_token;
+  const refresh = cookies.refresh_token;
+  if (!access || !refresh) throw new Error("No access or refresh token found");
+  const session = await client.verify(subjects, access);
   if (!session) throw new Error("No session found");
-  if (session.type !== "app") {
+  if (session.subject.type !== "user") {
     throw new Error("Invalid session type");
   }
-  const { id } = session.properties;
+  const { id } = session.subject.properties;
   if (!id) throw new Error("Invalid AppID in session");
   const app = await Applications.findById(id);
   if (!app) throw new Error("No application found");
   return app;
 };
 
-export const ensureAuthenticated = async (token: string) => {
-  const splitToken = token.split(" ");
-  if (splitToken.length !== 2) throw new Error("Invalid token");
-  if (splitToken[0] !== "Bearer") throw new Error("Invalid token");
-  const typeToken = splitToken[1].split(":");
-  if (typeToken.length !== 2) throw new Error("Invalid token");
-  const isValid = AuthenticationSchema.safeParse({
-    type: typeToken[0],
-    token: typeToken[1],
-  });
-  if (!isValid.success) {
-    throw new Error("Invalid token");
-  }
-  switch (isValid.data.type) {
+export const ensureAuthenticated = async (cookies: Cookies) => {
+  const access = cookies.access_token;
+  const refresh = cookies.refresh_token;
+  if (!access || !refresh) throw new Error("No access or refresh token found");
+  const session = await client.verify(subjects, access);
+  if (!session) throw new Error("No session found");
+  switch (session.subject.type) {
     case "app": {
-      const session = await sessions.verify(isValid.data.token);
-      if (!session) throw new Error("No session found");
-      if (session.type !== "app") {
-        throw new Error("Invalid session type");
-      }
-      const { id } = session.properties;
+      const { id } = session.subject.properties;
       if (!id) throw new Error("Invalid AppID in session");
       const app = await Applications.findById(id);
       if (!app) throw new Error("No application found");
       return { app };
     }
     case "user": {
-      const session = await sessions.verify(isValid.data.token);
-      if (!session) throw new Error("No session found");
-      if (session.type !== "user") {
-        throw new Error("Invalid session type");
-      }
-      const { id } = session.properties;
+      const { id } = session.subject.properties;
       if (!id) throw new Error("Invalid UserID in session");
       const user = await Users.findById(id);
       if (!user) throw new Error("No session found");
