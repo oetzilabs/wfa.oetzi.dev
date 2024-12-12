@@ -21,6 +21,9 @@ export const getUser = async (cookies: Cookies) => {
   if (!access || !refresh) throw new Error("No access or refresh token found");
   const session = await client.verify(subjects, access);
   if (!session) throw new Error("No session found");
+  if (session.err) {
+    throw session.err;
+  }
   if (session.subject.type !== "user") {
     throw new Error("Invalid session type");
   }
@@ -37,6 +40,9 @@ export const getApplication = async (cookies: Cookies) => {
   if (!access || !refresh) throw new Error("No access or refresh token found");
   const session = await client.verify(subjects, access);
   if (!session) throw new Error("No session found");
+  if (session.err) {
+    throw session.err;
+  }
   if (session.subject.type !== "user") {
     throw new Error("Invalid session type");
   }
@@ -53,6 +59,9 @@ export const ensureAuthenticated = async (cookies: Cookies) => {
   if (!access || !refresh) throw new Error("No access or refresh token found");
   const session = await client.verify(subjects, access);
   if (!session) throw new Error("No session found");
+  if (session.err) {
+    throw session.err;
+  }
   switch (session.subject.type) {
     case "app": {
       const { id } = session.subject.properties;
@@ -86,7 +95,7 @@ export const json = (input: unknown, statusCode = StatusCodes.OK): APIGatewayPro
 
 export const error = <T extends string | Record<string, any>>(
   error: T,
-  statusCode = StatusCodes.BAD_REQUEST,
+  statusCode = StatusCodes.BAD_REQUEST
 ): APIGatewayProxyResultV2 => {
   const payload = typeof error === "string" ? { error } : error;
   return {
