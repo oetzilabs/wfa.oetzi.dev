@@ -11,10 +11,6 @@ declare module "sst" {
       "type": "sst.aws.Auth"
       "url": string
     }
-    "AuthDynomoTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
     "DatabaseProvider": {
       "type": "sst.sst.Secret"
       "value": string

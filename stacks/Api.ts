@@ -34,4 +34,5 @@ hono_open_api_aws.route("$default", {
   nodejs: {
     install: ["isolated-vm", "pg"],
   },
+  runtime: "nodejs22.x",
 });

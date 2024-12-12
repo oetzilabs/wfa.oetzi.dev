@@ -8,27 +8,15 @@ const copyFiles = [
   },
 ];
 
-export const auth_dynomo_table = new sst.aws.Dynamo("AuthDynomoTable", {
-  fields: {
-    pk: "string",
-    sk: "string",
-  },
-  ttl: "expiry",
-  primaryIndex: {
-    hashKey: "pk",
-    rangeKey: "sk",
-  },
-});
-
 export const auth = new sst.aws.Auth(`Auth`, {
   authorizer: {
     handler: "packages/functions/src/auth.handler",
-    link: [...allSecrets, auth_dynomo_table],
+    link: [...allSecrets],
     environment: {
       AUTH_FRONTEND_URL: $dev ? "http://localhost:3000" : "https://" + domain,
       EMAIL_DOMAIN: domain,
     },
-    runtime: "nodejs20.x",
+    runtime: "nodejs22.x",
     copyFiles,
   },
   domain: {

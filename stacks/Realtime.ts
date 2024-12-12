@@ -16,6 +16,7 @@ export const realtime = new sst.aws.Realtime("RealtimeServer", {
     copyFiles,
     timeout: "30 seconds",
     url: true,
+    runtime: "nodejs22.x",
   },
 });
 
@@ -26,6 +27,7 @@ export const realtimeSubscriber = realtime.subscribe(
     copyFiles,
     timeout: "30 seconds",
     url: true,
+    runtime: "nodejs22.x",
   },
   {
     filter: `${$app.name}/${$app.stage}/#`,
