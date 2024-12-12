@@ -19,7 +19,7 @@ import {
   ValiError,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { applications } from "../drizzle/sql/schemas/applications";
+import { ApplicationCreateSchema, applications } from "../drizzle/sql/schemas/applications";
 import { Validator } from "../validator";
 
 export module Applications {

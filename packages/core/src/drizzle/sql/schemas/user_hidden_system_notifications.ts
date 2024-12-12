@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
 import { primaryKey } from "drizzle-orm/pg-core";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { system_notifications } from "./system_notifications";
 import { users } from "./users";
 import { schema } from "./utils";
@@ -25,6 +27,11 @@ export const user_hidden_system_notifications = schema.table(
 
 export type UserHiddenSystemNotificationSelect = typeof user_hidden_system_notifications.$inferSelect;
 export type UserHiddenSystemNotificationInsert = typeof user_hidden_system_notifications.$inferInsert;
+
+export const UserHiddenSystemNotificationCreateSchema = createInsertSchema(user_hidden_system_notifications);
+export type UserHiddenSystemNotificationCreate = InferInput<typeof UserHiddenSystemNotificationCreateSchema>;
+export const UserHiddenSystemNotificationUpdateSchema = createUpdateSchema(user_hidden_system_notifications);
+export type UserHiddenSystemNotificationUpdate = InferInput<typeof UserHiddenSystemNotificationUpdateSchema>;
 
 export const user_hidden_system_notification_relation = relations(user_hidden_system_notifications, ({ one }) => ({
   user: one(users, {

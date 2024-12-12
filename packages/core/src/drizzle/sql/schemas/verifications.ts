@@ -1,4 +1,6 @@
 import { relations } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { commonTable } from "./entity";
 import { users } from "./users";
 import { schema } from "./utils";
@@ -20,6 +22,11 @@ export const verifications = commonTable(
 
 export type VerificationSelect = typeof verifications.$inferSelect;
 export type VerificationInsert = typeof verifications.$inferInsert;
+
+export const VerificationCreateSchema = createInsertSchema(verifications);
+export type VerificationCreate = InferInput<typeof VerificationCreateSchema>;
+export const VerificationUpdateSchema = createUpdateSchema(verifications);
+export type VerificationUpdate = InferInput<typeof VerificationUpdateSchema>;
 
 export const verification_relation = relations(verifications, ({ one, many }) => ({
   owner_id: one(users, {

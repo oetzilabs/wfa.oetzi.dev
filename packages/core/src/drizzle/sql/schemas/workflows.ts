@@ -1,4 +1,6 @@
 import { relations } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { commonTable } from "./entity";
 import { users } from "./users";
 import { workflows_steps } from "./workflows_steps";
@@ -17,6 +19,11 @@ export const workflows = commonTable(
   }),
   "wf",
 );
+
+export const WorkflowsCreateSchema = createInsertSchema(workflows);
+export type WorkflowsCreate = InferInput<typeof WorkflowsCreateSchema>;
+export const WorkflowsUpdateSchema = createUpdateSchema(workflows);
+export type WorkflowsUpdate = InferInput<typeof WorkflowsUpdateSchema>;
 
 export const workflow_relation = relations(workflows, ({ one, many }) => ({
   owner: one(users, {

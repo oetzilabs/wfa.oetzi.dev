@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
 import { primaryKey } from "drizzle-orm/pg-core";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { applications } from "./applications";
 import { organizations } from "./organizations";
 import { schema } from "./utils";
@@ -22,6 +24,11 @@ export const organizations_applications = schema.table(
   }),
   (table) => [primaryKey({ columns: [table.app_id, table.organization_id], name: "organizations_applications_pk" })],
 );
+
+export const OrganizationApplicationCreateSchema = createInsertSchema(organizations_applications);
+export type OrganizationApplicationCreate = InferInput<typeof OrganizationApplicationCreateSchema>;
+export const OrganizationApplicationUpdateSchema = createUpdateSchema(organizations_applications);
+export type OrganizationApplicationUpdate = InferInput<typeof OrganizationApplicationUpdateSchema>;
 
 export type UserOrganizationSelect = typeof organizations_applications.$inferSelect;
 export type UserOrganizationInsert = typeof organizations_applications.$inferInsert;

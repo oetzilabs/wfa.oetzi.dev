@@ -1,4 +1,6 @@
 import { relations } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { commonTable } from "./entity";
 import { user_organizations } from "./user_organizations";
 import { users } from "./users";
@@ -16,6 +18,11 @@ export const organizations = commonTable(
 
 export type OrganizationSelect = typeof organizations.$inferSelect;
 export type OrganizationInsert = typeof organizations.$inferInsert;
+
+export const OrganizationCreateSchema = createInsertSchema(organizations);
+export type OrganizationCreate = InferInput<typeof OrganizationCreateSchema>;
+export const OrganizationUpdateSchema = createUpdateSchema(organizations);
+export type OrganizationUpdate = InferInput<typeof OrganizationUpdateSchema>;
 
 export const organization_relation = relations(organizations, ({ one, many }) => ({
   owner: one(users, {

@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
 import { AnyPgColumn } from "drizzle-orm/pg-core";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { commonTable, createToken } from "./entity";
 import { steps_tasks } from "./steps_tasks";
 import { users } from "./users";
@@ -23,6 +25,11 @@ export const tasks = commonTable(
   }),
   "task",
 );
+
+export const TaskCreateSchema = createInsertSchema(tasks);
+export type TaskCreate = InferInput<typeof TaskCreateSchema>;
+export const TaskUpdateSchema = createUpdateSchema(tasks);
+export type TaskUpdate = InferInput<typeof TaskUpdateSchema>;
 
 export const tasks_relation = relations(tasks, ({ one, many }) => ({
   owner: one(users, {

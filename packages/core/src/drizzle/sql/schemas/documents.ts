@@ -1,4 +1,6 @@
 import { relations } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { applications } from "./applications";
 import { commonTable } from "./entity";
 import { folders } from "./folders";
@@ -33,8 +35,13 @@ export const documents = commonTable(
         onDelete: "cascade",
       }),
   }),
-  "doc"
+  "doc",
 );
+
+export const DocumentCreateSchema = createInsertSchema(documents);
+export type DocumentCreate = InferInput<typeof DocumentCreateSchema>;
+export const DocumentUpdateSchema = createUpdateSchema(documents);
+export type DocumentUpdate = InferInput<typeof DocumentUpdateSchema>;
 
 export const document_relation = relations(documents, ({ one }) => ({
   owner: one(users, {

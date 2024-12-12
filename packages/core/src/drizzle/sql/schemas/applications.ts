@@ -1,4 +1,6 @@
 import { relations } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { applications_workflows } from "./applications_workflows";
 import { commonTable, createToken } from "./entity";
 import { users } from "./users";
@@ -21,6 +23,11 @@ export const applications = commonTable(
   }),
   "app",
 );
+
+export const ApplicationCreateSchema = createInsertSchema(applications);
+export type ApplicationCreate = InferInput<typeof ApplicationCreateSchema>;
+export const ApplicationUpdateSchema = createUpdateSchema(applications);
+export type ApplicationUpdate = InferInput<typeof ApplicationUpdateSchema>;
 
 export const app_relation = relations(applications, ({ many, one }) => ({
   owner: one(users, {

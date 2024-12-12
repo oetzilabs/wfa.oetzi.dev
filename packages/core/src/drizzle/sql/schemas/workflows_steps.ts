@@ -1,8 +1,10 @@
 import { relations } from "drizzle-orm";
 import { primaryKey } from "drizzle-orm/pg-core";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
+import { steps } from "./steps";
 import { schema } from "./utils";
 import { workflows } from "./workflows";
-import { steps } from "./steps";
 
 export const workflows_steps = schema.table(
   "workflows_steps",
@@ -26,8 +28,13 @@ export const workflows_steps = schema.table(
         columns: [table.workflow_id, table.step_id],
       }),
     },
-  ]
+  ],
 );
+
+export const WorkflowsStepsCreateSchema = createInsertSchema(workflows_steps);
+export type WorkflowsStepsCreate = InferInput<typeof WorkflowsStepsCreateSchema>;
+export const WorkflowsStepsUpdateSchema = createUpdateSchema(workflows_steps);
+export type WorkflowsStepsUpdate = InferInput<typeof WorkflowsStepsUpdateSchema>;
 
 export const workflow_steps_relation = relations(workflows_steps, ({ one }) => ({
   workflow: one(workflows, {

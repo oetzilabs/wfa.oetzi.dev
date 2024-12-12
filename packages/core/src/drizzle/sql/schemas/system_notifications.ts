@@ -1,5 +1,7 @@
 import { relations } from "drizzle-orm";
 import { json, text } from "drizzle-orm/pg-core";
+import { createInsertSchema, createUpdateSchema } from "drizzle-valibot";
+import { InferInput } from "valibot";
 import { commonTable } from "./entity";
 
 export type SystemNotificationAction =
@@ -22,6 +24,11 @@ export const system_notifications = commonTable(
   }),
   "system_notification",
 );
+
+export const SystemNotificationCreateSchema = createInsertSchema(system_notifications);
+export type SystemNotificationCreate = InferInput<typeof SystemNotificationCreateSchema>;
+export const SystemNotificationUpdateSchema = createUpdateSchema(system_notifications);
+export type SystemNotificationUpdate = InferInput<typeof SystemNotificationUpdateSchema>;
 
 export type SystemNotificationSelect = typeof system_notifications.$inferSelect;
 export type SystemNotificationInsert = typeof system_notifications.$inferInsert;
