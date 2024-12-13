@@ -14,48 +14,15 @@ import {
   transform,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { organizations } from "../drizzle/sql/schema";
+import { OrganizationCreateSchema, organizations, OrganizationUpdateSchema } from "../drizzle/sql/schema";
 import { Validator } from "../validator";
 
 export module Organizations {
-  export const CreateSchema = strictObject({
-    owner_id: Validator.Cuid2Schema,
-    name: string(),
-    email: string(),
-    phoneNumber: optional(nullable(string())),
-    website: optional(string()),
-    image: optional(string()),
-
-    base_charge: optional(
-      nullable(
-        pipe(
-          Validator.MinZeroSchema,
-          transform((val) => String(val)),
-        ),
-      ),
-    ),
-    distance_charge: optional(
-      nullable(
-        pipe(
-          Validator.MinZeroSchema,
-          transform((val) => String(val)),
-        ),
-      ),
-    ),
-    time_charge: optional(
-      nullable(
-        pipe(
-          Validator.MinZeroSchema,
-          transform((val) => String(val)),
-        ),
-      ),
-    ),
-  });
+  export const CreateSchema = OrganizationCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...OrganizationUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Organizations.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.organizations.findFirst>[0]>["with"];

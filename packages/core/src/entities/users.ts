@@ -13,22 +13,16 @@ import {
   string,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { users } from "../drizzle/sql/schemas/users";
+import { UserCreateSchema, users, UserUpdateSchema } from "../drizzle/sql/schemas/users";
 import { Validator } from "../validator";
 import { Organizations } from "./organizations";
 
 export module Users {
-  export const CreateSchema = strictObject({
-    name: string(),
-    email: Validator.EmailSchema,
-    image: optional(nullable(string())),
-    verifiedAt: optional(nullable(date())),
-  });
+  export const CreateSchema = UserCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...UserUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Users.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.users.findFirst>[0]>["with"];
@@ -136,11 +130,7 @@ export module Users {
             email: "admin@wfa.oetzi.dev",
             owner_id: adminUser!.id,
             name: "QWERTY Studios",
-            phoneNumber: "123456789",
             website: "https://wfa.oetzi.dev",
-            base_charge: 0,
-            distance_charge: 0,
-            time_charge: 0,
           });
           if (!adminCompany) {
             throw new Error("Could not create organization");
@@ -170,11 +160,7 @@ export module Users {
             email: "testuser@wfa.oetzi.dev",
             owner_id: testUser!.id,
             name: "Test Company",
-            phoneNumber: "123456789",
             website: "https://wfa.oetzi.dev",
-            base_charge: 0,
-            distance_charge: 0,
-            time_charge: 0,
           });
           if (!testCompany) {
             throw new Error("Could not create organization");

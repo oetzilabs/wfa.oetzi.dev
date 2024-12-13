@@ -33,7 +33,7 @@ export default function SidebarComponent() {
     {
       title: "Dashboard",
       href: "/dashboard",
-      icon: Boxes,
+      icon: Home,
       exact: true,
     },
     {

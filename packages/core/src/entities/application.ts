@@ -19,20 +19,15 @@ import {
   ValiError,
 } from "valibot";
 import { db } from "../drizzle/sql";
-import { ApplicationCreateSchema, applications } from "../drizzle/sql/schemas/applications";
+import { ApplicationCreateSchema, applications, ApplicationUpdateSchema } from "../drizzle/sql/schemas/applications";
 import { Validator } from "../validator";
 
 export module Applications {
-  export const CreateSchema = strictObject({
-    name: string(),
-    token: optional(string()),
-    owner_id: Validator.Cuid2Schema,
-  });
+  export const CreateSchema = ApplicationCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...ApplicationUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Applications.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.applications.findFirst>[0]>["with"];

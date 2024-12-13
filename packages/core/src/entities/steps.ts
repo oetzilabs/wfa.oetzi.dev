@@ -2,21 +2,15 @@ import { and, desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { steps_tasks } from "../drizzle/sql/schema";
-import { steps } from "../drizzle/sql/schemas/steps";
+import { steps, StepsCreateSchema, StepsUpdateSchema } from "../drizzle/sql/schemas/steps";
 import { Validator } from "../validator";
 
 export module Steps {
-  export const CreateSchema = strictObject({
-    name: string(),
-    token: optional(string()),
-    previous_step_id: optional(nullable(string())),
-    owner_id: Validator.Cuid2Schema,
-  });
+  export const CreateSchema = StepsCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...StepsUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Steps.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.steps.findFirst>[0]>["with"];

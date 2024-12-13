@@ -215,6 +215,7 @@ export default function CreateApplicationPage() {
                                         size="sm"
                                         onClick={() => {
                                           // TODO: Add 'example-workflow' workflow.
+                                          toast.info("Example workflow is not yet implemented.");
                                         }}
                                         class="gap-2"
                                       >

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
-import { tasks } from "../drizzle/sql/schemas/tasks";
+import { TaskCreateSchema, tasks, TaskUpdateSchema } from "../drizzle/sql/schemas/tasks";
 import { Validator } from "../validator";
 import { ActivityLogs } from "./activity_logs";
 import { Cfg } from "./configurator";
@@ -13,17 +13,11 @@ import { Users } from "./users";
 import { VFS } from "./vfs";
 
 export module Tasks {
-  export const CreateSchema = strictObject({
-    name: string(),
-    token: optional(string()),
-    previous_task_id: optional(nullable(string())),
-    owner_id: Validator.Cuid2Schema,
-  });
+  export const CreateSchema = TaskCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...TaskUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Tasks.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.tasks.findFirst>[0]>["with"];
@@ -267,7 +261,14 @@ export module Tasks {
           await copyFiles(environmentPath + entity.path, entity);
           continue;
         }
-        await writeFile(environmentPath + entity.path, entity.contents);
+        if (entity.type !== "file") throw new Error("Could not create environment, could not copy files");
+        const arrayBuffer = new ArrayBuffer(entity.contents.length);
+        const view = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < entity.contents.length; ++i) {
+          view[i] = entity.contents[i];
+        }
+        const dataviewer = new DataView(arrayBuffer);
+        await writeFile(environmentPath + entity.path, dataviewer);
       } catch (e) {
         throw new Error("Could not create environment, could not copy files");
       }

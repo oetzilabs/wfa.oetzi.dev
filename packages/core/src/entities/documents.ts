@@ -1,37 +1,17 @@
 import { eq } from "drizzle-orm";
-import {
-  date,
-  InferInput,
-  intersect,
-  nullable,
-  optional,
-  partial,
-  picklist,
-  safeParse,
-  strictObject,
-  string,
-} from "valibot";
+import { InferInput, safeParse, strictObject } from "valibot";
 import { db } from "../drizzle/sql";
-import { document_statuses, documents } from "../drizzle/sql/schemas/documents";
+import { DocumentCreateSchema, documents, DocumentUpdateSchema } from "../drizzle/sql/schemas/documents";
 import { Validator } from "../validator";
 import { Applications } from "./application";
 import { Users } from "./users";
 
 export module Documents {
-  export const CreateSchema = strictObject({
-    app_id: Validator.Cuid2Schema,
-    owner_id: Validator.Cuid2Schema,
-    filename: string(),
-    folder_id: Validator.Cuid2Schema,
-    filepath: string(),
-    hash: optional(string()),
-    status: optional(picklist(document_statuses)),
-  });
+  export const CreateSchema = DocumentCreateSchema;
 
   export const UpdateSchema = strictObject({
+    ...DocumentUpdateSchema.entries,
     id: Validator.Cuid2Schema,
-    ...strictObject({ deletedAt: optional(nullable(date())) }).entries,
-    ...partial(Documents.CreateSchema).entries,
   });
 
   export type WithOptions = NonNullable<Parameters<typeof db.query.documents.findFirst>[0]>["with"];

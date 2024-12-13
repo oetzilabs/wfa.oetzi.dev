@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserSession } from "@/lib/auth/util";
 import { A, useSubmission } from "@solidjs/router";
+import ArrowRight from "lucide-solid/icons/arrow-right";
 import Cpu from "lucide-solid/icons/cpu";
+import Home from "lucide-solid/icons/home";
 import Loader2 from "lucide-solid/icons/loader-2";
 import LogOut from "lucide-solid/icons/log-out";
 import Plus from "lucide-solid/icons/plus";
@@ -23,7 +25,7 @@ export default function UserMenu(props: { user: NonNullable<UserSession["user"]>
   const isLoggingOut = useSubmission(logout);
 
   return (
-    <DropdownMenu placement="bottom-end" gutter={4}>
+    <DropdownMenu placement="bottom-end" gutter={4} sameWidth>
       <DropdownMenuTrigger
         as={Button}
         variant="outline"
@@ -48,21 +50,19 @@ export default function UserMenu(props: { user: NonNullable<UserSession["user"]>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Settings class="size-4" />
+          <Home class="size-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between pl-0">
-            <A
-              class="font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-900 p-2 py-0.5 w-full rounded-e-sm items-center justify-start"
-              href="/dashboard/applications"
-            >
-              Applications
-            </A>
-            <div class="">
+          <DropdownMenuGroupLabel class="flex flex-row gap-0.5 items-center w-full justify-between">
+            <span class="font-semibold w-full">Applications</span>
+            <div class="flex flex-row gap-1 items-center">
               <Button size="icon" class="size-6 p-1" variant="outline" as={A} href="/dashboard/applications/create">
                 <Plus class="size-4" />
+              </Button>
+              <Button size="icon" class="size-6 p-1" variant="outline" as={A} href="/dashboard/applications">
+                <ArrowRight class="size-4" />
               </Button>
             </div>
           </DropdownMenuGroupLabel>

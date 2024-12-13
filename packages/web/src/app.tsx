@@ -24,6 +24,7 @@ import { Realtime } from "./components/Realtime";
 import { ServiceWorker } from "./components/ServiceWorker";
 import { logout } from "./utils/api/actions";
 import "@fontsource/geist-mono";
+import ReloadPrompt from "./components/ReloadPrompt";
 
 export default function App() {
   const authLink = import.meta.env.VITE_AUTH_URL;
@@ -77,7 +78,9 @@ export default function App() {
                 //   </div>
                 // }
                 >
-                  <ServiceWorker />
+                  <ServiceWorker>
+                    <ReloadPrompt />
+                  </ServiceWorker>
                   <ColorModeScript storageType={storageManager.type} initialColorMode="system" />
                   <ColorModeProvider storageManager={storageManager}>
                     <Toaster
