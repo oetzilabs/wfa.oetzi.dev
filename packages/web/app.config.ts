@@ -10,6 +10,9 @@ const { default: mdx } = pkg;
 export default defineConfig({
   server: {
     preset: "aws-lambda",
+    awsLambda: {
+      streaming: true,
+    },
     compatibilityDate: "2024-11-23",
     esbuild: {
       options: {

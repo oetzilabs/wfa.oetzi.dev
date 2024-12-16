@@ -13,7 +13,6 @@ const main_app_url = $dev ? $interpolate`http://localhost:3000` : $interpolate`h
 export const solidStartApp = new sst.aws.SolidStart(`SolidStartApp`, {
   link: [...allSecrets, hono_open_api_aws, auth, realtime, mainAWSStorage],
   path: "packages/web",
-  buildCommand: "pnpm build",
   environment: {
     VITE_API_URL: $interpolate`api-aws.${domain}`,
     VITE_APP_URL: main_app_url,
