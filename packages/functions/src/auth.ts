@@ -1,6 +1,5 @@
 import { authorizer } from "@openauthjs/openauth";
 import { GoogleOidcAdapter } from "@openauthjs/openauth/adapter/google";
-import { DynamoStorage } from "@openauthjs/openauth/storage/dynamo";
 import { subjects } from "@wfa/core/src/auth/subjects";
 import { Users } from "@wfa/core/src/entities/users";
 import { handle } from "hono/aws-lambda";
@@ -9,9 +8,6 @@ import { Resource } from "sst";
 
 export const handler = handle(
   authorizer({
-    storage: DynamoStorage({
-      table: Resource.AuthDynomoTable.name,
-    }),
     subjects,
     providers: {
       google: GoogleOidcAdapter({

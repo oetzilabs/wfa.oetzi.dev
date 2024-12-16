@@ -75,9 +75,16 @@ export const getAuthenticatedSession = query(async () => {
   if (session.userId) {
     userSession.user = await Users.findById(session.userId);
     userSession.organizations = await Organizations.findByUserId(session.userId);
-    userSession.applications = await Applications.findByUserId(session.userId);
+    const apps = await Applications.findByUserId(session.userId);
+    // first app is the `userSession.application.id` and the others are following.
+    const apps_sorted = (
+      session.application_id
+        ? [apps.find((a) => a.id === session.application_id), ...apps.filter((a) => a.id !== session.application_id)]
+        : apps
+    ).filter((a) => a !== undefined);
+    userSession.applications = apps_sorted;
   }
-  if (session.createdAt) userSession.createdAt = session.createdAt;
+  userSession.createdAt = session.createdAt;
 
   return userSession;
 }, "session");

@@ -1,6 +1,6 @@
 import type { Validator } from "@wfa/core/src/validator";
 import type { InferInput } from "valibot";
-import { action, json, redirect, revalidate } from "@solidjs/router";
+import { action, json, redirect } from "@solidjs/router";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Auth } from "../auth";
 import { ensureAuthenticated } from "../auth/context";
@@ -18,20 +18,14 @@ export const createApplication = action(
 
     const oldSession = ctx.session;
 
-    // invalidate session
-    await Auth.invalidateSession(oldSession.id);
-
-    const sessionToken = Auth.generateSessionToken();
-
-    const session = await Auth.createSession(sessionToken, {
+    const session = await Auth.updateSession(oldSession.cookie_token, {
       ...oldSession,
       application_id: app?.id,
     });
 
-    Auth.setSessionCookie(event, sessionToken);
     event.context.session = session;
 
-    throw redirect("/dashboard/applications/" + app.id, {
+    throw redirect("/dashboard/applications/", {
       revalidate: [getAuthenticatedSession.key],
     });
   },
@@ -102,14 +96,15 @@ export const removeApplication = action(async (id: Validator.Cuid2SchemaInput) =
 
   const oldSession = ctx.session;
 
+  const currentApplication = oldSession.application_id;
+
   const session = await Auth.updateSession(oldSession.cookie_token, {
     ...oldSession,
-    application_id: null,
+    application_id: currentApplication && currentApplication === app.id ? null : currentApplication,
   });
 
   event.context.session = session;
-
-  throw redirect("/dashboard", {
+  return json(app, {
     revalidate: [getAuthenticatedSession.key],
   });
 });

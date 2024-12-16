@@ -13,23 +13,27 @@ export async function GET(e: APIEvent) {
   const code = url.searchParams.get("code");
   if (!code) throw new Error("Missing code");
 
-  const tokens = await GoogleClient.exchange(code, import.meta.env.VITE_LOGIN_REDIRECT_URI);
+  const verified_tokens = await GoogleClient.exchange(code, import.meta.env.VITE_LOGIN_REDIRECT_URI);
 
-  const verified = await GoogleClient.verify(subjects, tokens.access!, {
-    refresh: tokens.refresh!,
+  if (verified_tokens.err) {
+    return sendRedirect(event, "/auth/error?error=exchange_failed&message=" + verified_tokens.err.message, 303);
+  }
+
+  const verified_tokens_subjects = await GoogleClient.verify(subjects, verified_tokens.tokens.access, {
+    refresh: verified_tokens.tokens.refresh,
   });
 
-  if (verified.err) {
-    return sendRedirect(event, "/auth/error?error=invalid_tokens&message=" + verified.err.message);
+  if (verified_tokens_subjects.err) {
+    return sendRedirect(event, "/auth/error?error=invalid_tokens&message=" + verified_tokens_subjects.err.message);
   }
 
   const sessionToken = Auth.generateSessionToken();
 
-  if (verified.subject.type !== "user") {
+  if (verified_tokens_subjects.subject.type !== "user") {
     return sendRedirect(event, "/auth/error?error=invalid_subject", 303);
   }
 
-  const user = await Users.findById(verified.subject.properties.id);
+  const user = await Users.findById(verified_tokens_subjects.subject.properties.id);
   if (!user) return sendRedirect(event, "/auth/error?error=missing_user", 303);
 
   const last_created_application = await Applications.lastCreatedByUserId(user.id);
@@ -43,8 +47,8 @@ export async function GET(e: APIEvent) {
   const session = await Auth.createSession(sessionToken, {
     userId: user.id,
     cookie_token: sessionToken,
-    access_token: tokens.access,
-    refresh_token: tokens.refresh,
+    access_token: verified_tokens.tokens.access,
+    refresh_token: verified_tokens.tokens.refresh,
     application_id: last_created_application?.id,
     organization_id: last_created_organization?.id,
     browser: e.request.headers.get("user-agent") ?? "unknown",

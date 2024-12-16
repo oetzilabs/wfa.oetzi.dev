@@ -29,7 +29,7 @@
     "@aws-sdk/client-s3": "3.697.0",
     "@aws-sdk/client-sesv2": "3.696.0",
     "@neondatabase/serverless": "0.10.4",
-    "@openauthjs/openauth": "^0.1.1",
+    "@openauthjs/openauth": "^0.2.3",
     "@paralleldrive/cuid2": "^2.2.2",
     "dayjs": "1.11.13",
     "drizzle-orm": "0.38.1",

@@ -168,6 +168,7 @@ export module Applications {
     if (!isValid.success) throw isValid.issues;
     return tsx.query.applications.findMany({
       where: (fields, ops) => ops.and(ops.eq(fields.owner_id, isValid.output), ops.isNull(fields.deletedAt)),
+      orderBy: (fields, operators) => [operators.asc(fields.createdAt), operators.asc(fields.name)],
       with: {
         ...Applications._with,
         workflows: {
