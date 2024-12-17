@@ -41,18 +41,6 @@ export default defineConfig({
       target: "esnext",
     },
     plugins: [
-      pwaPlugin({
-        srcDir: "src",
-        filename: "entry-serviceworker.ts",
-        strategies: "injectManifest",
-        devOptions: {
-          enabled: true,
-          type: "module",
-        },
-        injectRegister: false,
-        manifest: false,
-        injectManifest: { injectionPoint: undefined, rollupFormat: "iife" },
-      }),
       devtools({
         /* features options - all disabled by default */
         autoname: true, // e.g. enable autoname
