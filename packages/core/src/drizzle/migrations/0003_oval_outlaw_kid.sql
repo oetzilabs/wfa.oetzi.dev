@@ -1,0 +1,1 @@
+ALTER TABLE "workflowautomation"."session" ADD COLUMN "refresh_token" text;

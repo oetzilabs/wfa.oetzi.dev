@@ -1,14 +1,16 @@
 import type { APIEvent } from "@solidjs/start/server";
 import { Auth } from "@/lib/auth";
-import { GoogleClient } from "@/lib/auth/client";
+import { GoogleClient, setTokens } from "@/lib/auth/client";
 import { subjects } from "@wfa/core/src/auth/subjects";
 import { Applications } from "@wfa/core/src/entities/application";
 import { Organizations } from "@wfa/core/src/entities/organizations";
 import { Users } from "@wfa/core/src/entities/users";
+import { getRequestEvent } from "solid-js/web";
 import { getRequestFingerprint, getRequestIP, sendRedirect } from "vinxi/http";
 
 export async function GET(e: APIEvent) {
   const event = e.nativeEvent;
+  const e2 = getRequestEvent()!.nativeEvent;
   const url = new URL(e.request.url);
   const code = url.searchParams.get("code");
   if (!code) throw new Error("Missing code");
@@ -26,6 +28,8 @@ export async function GET(e: APIEvent) {
   if (verified_tokens_subjects.err) {
     return sendRedirect(event, "/auth/error?error=invalid_tokens&message=" + verified_tokens_subjects.err.message);
   }
+
+  setTokens(event, verified_tokens.tokens.access, verified_tokens.tokens.refresh);
 
   const sessionToken = Auth.generateSessionToken();
 

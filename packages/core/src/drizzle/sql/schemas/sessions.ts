@@ -32,6 +32,7 @@ export const sessions = schema.table("session", (t) => ({
     })
     .notNull(),
   access_token: t.text("access_token"),
+  refresh_token: t.text("refresh_token"),
   organization_id: t.text("organization_id"),
   application_id: t.text("application_id"),
   browser: t.text("browser"),
