@@ -18,14 +18,23 @@ import {
 import { chooseApplication, removeApplication } from "@/lib/api/applications";
 import { getStatistics } from "@/lib/api/statistics";
 import { getSystemNotifications } from "@/lib/api/system_notifications";
+import { getTasks, testTask } from "@/lib/api/tasks";
+import { addExampleWorkflow, removeWorkflow } from "@/lib/api/workflows";
 import { getAuthenticatedSession } from "@/lib/auth/util";
+import { update } from "@solid-primitives/signal-builders";
 import { A, createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import { createMutation } from "@tanstack/solid-query";
 import Loader2 from "lucide-solid/icons/loader-2";
 import MoreHorizontal from "lucide-solid/icons/more-horizontal";
+import Play from "lucide-solid/icons/play";
 import Plus from "lucide-solid/icons/plus";
+import Repeat from "lucide-solid/icons/repeat";
 import { createSignal, For, Show, Suspense } from "solid-js";
+import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
+import { Skeleton } from "../../../../../components/ui/skeleton";
+import { TextArea } from "../../../../../components/ui/textarea";
+import { TextFieldRoot } from "../../../../../components/ui/textfield";
 
 export const route = {
   preload: async () => {
@@ -47,6 +56,17 @@ export default function CreateApplicationPage() {
 
   const [confirmRemovalModalOpen, setConfirmRemovalModalOpen] = createSignal(false);
 
+  const tasks = createAsync(() => getTasks(), { deferStream: true });
+
+  const testTasksAction = useAction(testTask);
+  const testTasksSubmission = useSubmission(testTask);
+
+  const addExampleWorkflowAction = useAction(addExampleWorkflow);
+  const addExampleWorkflowSubmission = useSubmission(addExampleWorkflow);
+
+  const removeWorkflowAction = useAction(removeWorkflow);
+  const removeWorkflowSubmission = useSubmission(removeWorkflow);
+
   const copyTokenToClipboard = createMutation(() => ({
     key: ["copyTokenToClipboard"],
     mutationFn: async (text: string) => {
@@ -62,6 +82,8 @@ export default function CreateApplicationPage() {
       navigator.clipboard.writeText(text);
     },
   }));
+
+  const [taskInputs, setTaskInputs] = createStore<{ [key: string]: any }>({});
 
   return (
     <div class="w-full grow flex flex-col h-full">
@@ -83,7 +105,7 @@ export default function CreateApplicationPage() {
                     <Plus class="size-4" />
                   </Button>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-2 w-full">
                   <For
                     each={s().applications}
                     fallback={
@@ -99,8 +121,8 @@ export default function CreateApplicationPage() {
                     {(app) => (
                       <div class="flex flex-row gap-2 items-center border border-neutral-200 dark:border-neutral-800 p-4 w-full rounded-sm">
                         <div class="flex flex-col gap-4 w-full">
-                          <div class="flex flex-row gap-1 items-center justify-between">
-                            <div class="flex flex-col gap-2 items-start">
+                          <div class="flex flex-row gap-1 items-center justify-between w-full">
+                            <div class="flex flex-col gap-2 items-start w-full">
                               <div class="flex flex-row items-baseline justify-center gap-2 w-max">
                                 <span class="text-sm font-bold">{app.name}</span>
                                 <Button
@@ -120,7 +142,7 @@ export default function CreateApplicationPage() {
                               </div>
                               <span class="text-xs text-muted-foreground">{app.owner.name}</span>
                             </div>
-                            <div class="flex flex-row gap-1 items-center justify-end">
+                            <div class="flex flex-row gap-1 items-center justify-end w-max">
                               <Button
                                 size="sm"
                                 disabled={
@@ -140,11 +162,7 @@ export default function CreateApplicationPage() {
                               </Button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    class="flex flex-row items-center justify-center gap-2 w-full"
-                                  >
+                                  <Button variant="outline" size="icon">
                                     <MoreHorizontal class="size-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -192,9 +210,9 @@ export default function CreateApplicationPage() {
                               </DropdownMenu>
                             </div>
                           </div>
-                          <div class="flex flex-col gap-2 items-start">
-                            <span class="text-sm font-bold">Workflows</span>
-                            <div class="flex flex-col gap-2 items-start justify-start w-full">
+                          <div class="flex flex-col gap-4 items-start w-full">
+                            <span class="text-sm font-bold w-full">Workflows</span>
+                            <div class="flex flex-col gap-4 items-start justify-start w-full">
                               <For
                                 each={app.workflows}
                                 fallback={
@@ -215,7 +233,12 @@ export default function CreateApplicationPage() {
                                         size="sm"
                                         onClick={() => {
                                           // TODO: Add 'example-workflow' workflow.
-                                          toast.info("Example workflow is not yet implemented.");
+                                          // toast.info("Example workflow is not yet implemented.");
+                                          toast.promise(addExampleWorkflowAction(app.id), {
+                                            loading: "Adding example workflow...",
+                                            success: "Example workflow added successfully",
+                                            error: (error) => "Failed to add example workflow: " + error.message,
+                                          });
                                         }}
                                         class="gap-2"
                                       >
@@ -226,19 +249,191 @@ export default function CreateApplicationPage() {
                                 }
                               >
                                 {(wf) => (
-                                  <div>
-                                    <div class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 p-4 w-full rounded-sm">
-                                      <span>{wf.workflow.name}</span>
-                                      <div class="flex flex-row gap-2 items-start">
+                                  <div class="flex flex-col gap-4 items-start w-full">
+                                    <div class="flex flex-col gap-4 items-start border border-neutral-200 dark:border-neutral-800 p-2 w-full rounded-sm">
+                                      <div class="w-full flex flex-row items-center justify-between gap-2 ">
+                                        <span class="text-sm font-bold">{wf.workflow.name}</span>
+                                        <div class="flex flex-row gap-2 items-center">
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger
+                                              as={Button}
+                                              variant="outline"
+                                              size="icon"
+                                              class="size-6"
+                                            >
+                                              <MoreHorizontal class="size-3" />
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                              <DropdownMenuItem>Edit</DropdownMenuItem>
+                                              <AlertDialog
+                                                open={confirmRemovalModalOpen()}
+                                                onOpenChange={setConfirmRemovalModalOpen}
+                                              >
+                                                <AlertDialogTrigger
+                                                  as={DropdownMenuItem}
+                                                  disabled={
+                                                    removeApplicationSubmission.pending &&
+                                                    removeApplicationSubmission.input[0] === app.id
+                                                  }
+                                                  closeOnSelect={false}
+                                                >
+                                                  Delete
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                  <AlertDialogHeader class="font-bold">
+                                                    Removing Workflow: {app.name}...
+                                                  </AlertDialogHeader>
+                                                  <AlertDialogDescription>
+                                                    Are you sure you want to remove this workflow? This action cannot be
+                                                    undone.
+                                                  </AlertDialogDescription>
+                                                  <AlertDialogFooter>
+                                                    <AlertDialogClose>Cancel.</AlertDialogClose>
+                                                    <AlertDialogAction
+                                                      variant="destructive"
+                                                      disabled={
+                                                        removeWorkflowSubmission.pending &&
+                                                        removeWorkflowSubmission.input[0] === wf.workflow.id
+                                                      }
+                                                      onClick={() =>
+                                                        toast.promise(removeWorkflowAction(wf.workflow.id), {
+                                                          loading: "Removing workflow...",
+                                                          success: "Workflow removed successfully",
+                                                          error: "Failed to remove workflow",
+                                                        })
+                                                      }
+                                                    >
+                                                      Yes, Remove Workflow!
+                                                    </AlertDialogAction>
+                                                  </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                              </AlertDialog>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
+                                      </div>
+                                      <div class="flex flex-row gap-2 items-start w-full">
                                         <For each={wf.workflow.steps}>
                                           {(step) => (
-                                            <div class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 p-4 w-full rounded-sm">
-                                              <span>{step.step.name}</span>
-                                              <div class="flex flex-row gap-2 items-start">
+                                            <div class="flex flex-col gap-0 items-start border border-neutral-200 dark:border-neutral-800 w-full rounded-sm overflow-clip">
+                                              <div class="flex flex-row font-bold p-2 bg-neutral-100 dark:bg-neutral-900 w-full items-center justify-between">
+                                                <span class="text-xs">{step.step.name}</span>
+                                                <div class="flex flex-row item-end justify-end gap-1">
+                                                  <Button size="icon" variant="outline" class="size-6">
+                                                    <MoreHorizontal class="size-3" />
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                              <div class="flex flex-row gap-2 items-start w-full p-2">
                                                 <For each={step.step.tasks}>
                                                   {(task) => (
-                                                    <div class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 p-4 w-full rounded-sm">
-                                                      <span>{task.task.name}</span>
+                                                    <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full">
+                                                      <span class="text-xs font-semibold">Step: {task.task.name}</span>
+                                                      <span class="text-xs">Input:</span>
+                                                      <TextFieldRoot
+                                                        class=" text-muted-foreground w-full"
+                                                        value={taskInputs[task.task.id] ?? ""}
+                                                        onChange={(value) =>
+                                                          setTaskInputs(update(taskInputs, task.task.id, value))
+                                                        }
+                                                      >
+                                                        <TextArea autoResize class="text-xs font-mono" />
+                                                      </TextFieldRoot>
+                                                      <div class="flex flex-row gap-2 items-center">
+                                                        <Button
+                                                          size="sm"
+                                                          onClick={() => {
+                                                            let input = undefined;
+                                                            try {
+                                                              input = JSON.parse(taskInputs[task.task.id]);
+                                                            } catch (e) {
+                                                              toast.error("Invalid input");
+                                                              return;
+                                                            }
+                                                            toast.promise(testTasksAction(task.task.id, input), {
+                                                              loading: "Testing task...",
+                                                              success: "Task tested successfully",
+                                                              error: (error) => "Failed to test task: " + error.message,
+                                                            });
+                                                          }}
+                                                          disabled={testTasksSubmission.pending}
+                                                          class="gap-2 w-max"
+                                                        >
+                                                          <Show
+                                                            when={testTasksSubmission.pending}
+                                                            fallback={<Play class="size-4" />}
+                                                          >
+                                                            <Loader2 class="size-4 animate-spin" />
+                                                          </Show>
+                                                          Test
+                                                        </Button>
+                                                        <Button
+                                                          size="sm"
+                                                          onClick={() => {
+                                                            setTaskInputs(
+                                                              update(taskInputs, task.task.id, task.task.example ?? ""),
+                                                            );
+                                                            testTasksSubmission.clear();
+                                                          }}
+                                                          disabled={testTasksSubmission.pending}
+                                                          variant="secondary"
+                                                          class="gap-2 w-max"
+                                                        >
+                                                          <Repeat class="size-4" />
+                                                          Reset
+                                                        </Button>
+                                                      </div>
+                                                      <div class="w-full h-px bg-neutral-200 dark:bg-neutral-800" />
+                                                      <Show
+                                                        when={testTasksSubmission.pending !== undefined}
+                                                        fallback={
+                                                          <div class="w-full flex flex-col items-start justify-center gap-2 border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm bg-neutral-50 dark:bg-neutral-900">
+                                                            <span class="text-xs text-neutral-500">
+                                                              Please press the "Test" button to run the task.
+                                                            </span>
+                                                          </div>
+                                                        }
+                                                      >
+                                                        <Show
+                                                          when={
+                                                            !testTasksSubmission.pending && testTasksSubmission.result
+                                                          }
+                                                          fallback={
+                                                            <Show
+                                                              when={testTasksSubmission.pending}
+                                                              fallback={
+                                                                <div class="w-full flex flex-col items-start justify-center gap-2 border border-red-500 dark:border-red-500 p-2 rounded-sm bg-red-50 dark:bg-red-900">
+                                                                  <span class="text-xs text-red-500">
+                                                                    Failed to run task:
+                                                                  </span>
+                                                                  <span class="text-xs p-2 rounded-sm w-full bg-white min-h-40">
+                                                                    {JSON.stringify(testTasksSubmission.error, null, 2)}
+                                                                  </span>
+                                                                </div>
+                                                              }
+                                                            >
+                                                              <Skeleton class="h-40 w-full" />
+                                                            </Show>
+                                                          }
+                                                        >
+                                                          {(result) => (
+                                                            <div class="">
+                                                              <span class="text-xs">
+                                                                {result().type === "success" ? "Success" : "Error"}
+                                                              </span>
+                                                              <pre class="text-xs border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm w-full">
+                                                                {JSON.stringify(
+                                                                  result().type === "success"
+                                                                    ? result().data
+                                                                    : result().error,
+                                                                  null,
+                                                                  2,
+                                                                )}
+                                                              </pre>
+                                                            </div>
+                                                          )}
+                                                        </Show>
+                                                      </Show>
                                                     </div>
                                                   )}
                                                 </For>

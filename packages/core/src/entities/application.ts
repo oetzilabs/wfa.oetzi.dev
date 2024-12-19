@@ -19,6 +19,7 @@ import {
   ValiError,
 } from "valibot";
 import { db } from "../drizzle/sql";
+import { applications_workflows } from "../drizzle/sql/schema";
 import { ApplicationCreateSchema, applications, ApplicationUpdateSchema } from "../drizzle/sql/schemas/applications";
 import { Validator } from "../validator";
 
@@ -166,7 +167,7 @@ export module Applications {
   export const findByUserId = async (id: Validator.Cuid2SchemaInput, tsx = db) => {
     const isValid = safeParse(Validator.Cuid2Schema, id);
     if (!isValid.success) throw isValid.issues;
-    return tsx.query.applications.findMany({
+    const apps = await tsx.query.applications.findMany({
       where: (fields, ops) => ops.and(ops.eq(fields.owner_id, isValid.output), ops.isNull(fields.deletedAt)),
       orderBy: (fields, operators) => [operators.asc(fields.createdAt), operators.asc(fields.name)],
       with: {
@@ -194,6 +195,26 @@ export module Applications {
         },
       },
     });
+    return apps.map((app) => ({
+      ...app,
+      workflows: app.workflows
+        .filter((wf) => wf.workflow.deletedAt === null)
+        .map((wf) => ({
+          ...wf,
+          workflow: {
+            ...wf.workflow,
+            steps: wf.workflow.steps
+              .filter((step) => step.step.deletedAt === null)
+              .map((s) => ({
+                ...s,
+                step: {
+                  ...s.step,
+                  tasks: s.step.tasks.filter((t) => t.task.deletedAt === null),
+                },
+              })),
+          },
+        })),
+    }));
   };
 
   export const update = async (data: UpdateInfo, tsx = db) => {
@@ -228,7 +249,7 @@ export module Applications {
     if (!isValid.success) {
       throw isValid.issues;
     }
-    return tsx.query.applications.findFirst({
+    let app = await tsx.query.applications.findFirst({
       where: (fields, ops) => ops.eq(fields.owner_id, isValid.output),
       orderBy: [desc(applications.createdAt)],
       with: {
@@ -256,5 +277,43 @@ export module Applications {
         },
       },
     });
+
+    // filter out workflows that are deleted
+    if (app) {
+      app = {
+        ...app,
+        workflows: app.workflows
+          .filter((wf) => wf.workflow.deletedAt === null)
+          .map((wf) => ({
+            ...wf,
+            workflow: {
+              ...wf.workflow,
+              steps: wf.workflow.steps
+                .filter((step) => step.step.deletedAt === null)
+                .map((s) => ({
+                  ...s,
+                  step: {
+                    ...s.step,
+                    tasks: s.step.tasks.filter((t) => t.task.deletedAt === null),
+                  },
+                })),
+            },
+          })),
+      };
+    }
+
+    return app;
+  };
+
+  export const addWorkflow = async (
+    applicationId: Validator.Cuid2SchemaInput,
+    workflowId: Validator.Cuid2SchemaInput,
+  ) => {
+    // TODO: Add validation
+    const added = await db
+      .insert(applications_workflows)
+      .values({ application_id: applicationId, workflow_id: workflowId })
+      .returning();
+    return added;
   };
 }

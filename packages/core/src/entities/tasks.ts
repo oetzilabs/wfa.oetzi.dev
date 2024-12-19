@@ -5,6 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { date, InferInput, intersect, nullable, optional, partial, safeParse, strictObject, string } from "valibot";
 import { db } from "../drizzle/sql";
 import { TaskCreateSchema, tasks, TaskUpdateSchema } from "../drizzle/sql/schemas/tasks";
+import * as task_collection from "../tasks/collection";
 import { Validator } from "../validator";
 import { ActivityLogs } from "./activity_logs";
 import { Cfg } from "./configurator";
@@ -273,5 +274,15 @@ export module Tasks {
         throw new Error("Could not create environment, could not copy files");
       }
     }
+  };
+
+  export const getCollection = async () => {
+    return Object.keys(task_collection)
+      .filter((key) => !key.includes("Schema") && key.toLowerCase() === key)
+      .map((function_name) => ({
+        // @ts-ignore
+        task: task_collection[function_name],
+        name: function_name,
+      }));
   };
 }

@@ -21,6 +21,7 @@ export const tasks = commonTable(
       .references(() => users.id, {
         onDelete: "cascade",
       }),
+    example: t.text("example"),
     previous_task_id: t.text("previous_task_id").references((): AnyPgColumn => tasks.id),
   }),
   "task",

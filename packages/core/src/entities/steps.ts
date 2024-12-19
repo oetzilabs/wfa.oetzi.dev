@@ -129,7 +129,10 @@ export module Steps {
     if (!is_valid_task_id.success) {
       throw is_valid_task_id.issues;
     }
-    return tsx.insert(steps_tasks).values({ step_id: is_valid_step_id.output, task_id: is_valid_task_id.output });
+    return tsx
+      .insert(steps_tasks)
+      .values({ step_id: is_valid_step_id.output, task_id: is_valid_task_id.output })
+      .returning();
   };
 
   export const removeTask = async (id: Validator.Cuid2SchemaInput, taskId: Validator.Cuid2SchemaInput, tsx = db) => {

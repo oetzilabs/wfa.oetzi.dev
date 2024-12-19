@@ -1,0 +1,1 @@
+ALTER TABLE "workflowautomation"."tasks" ADD COLUMN "example" text;

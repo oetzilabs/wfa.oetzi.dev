@@ -130,7 +130,8 @@ export module Workflows {
     }
     return tsx
       .insert(workflows_steps)
-      .values({ workflow_id: is_valid_workflow_id.output, step_id: is_valid_step_id.output });
+      .values({ workflow_id: is_valid_workflow_id.output, step_id: is_valid_step_id.output })
+      .returning();
   };
 
   export const removeStep = async (id: Validator.Cuid2SchemaInput, stepId: Validator.Cuid2SchemaInput, tsx = db) => {

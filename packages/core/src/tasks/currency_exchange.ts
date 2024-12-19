@@ -95,3 +95,10 @@ export const [ExchangeSchema, exchange] = Exchange;
 //   value: 100,
 // });
 // console.log(result);
+
+export default {
+  name: "currency_exchange",
+  schema: CurrencyExchangeSchema,
+  task: exchange,
+  example: JSON.stringify({ date: "latest", from: "eur", to: ["usd", "chf"], value: 100 }, null, 2),
+};
