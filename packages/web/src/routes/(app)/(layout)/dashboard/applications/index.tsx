@@ -32,9 +32,11 @@ import Repeat from "lucide-solid/icons/repeat";
 import { createSignal, For, Show, Suspense } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
+import { Badge } from "../../../../../components/ui/badge";
 import { Skeleton } from "../../../../../components/ui/skeleton";
 import { TextArea } from "../../../../../components/ui/textarea";
 import { TextFieldRoot } from "../../../../../components/ui/textfield";
+import { ToggleButton } from "../../../../../components/ui/toggle";
 
 export const route = {
   preload: async () => {
@@ -83,7 +85,14 @@ export default function CreateApplicationPage() {
     },
   }));
 
+  const default_config = {
+    logging: {
+      logging: true,
+    },
+  };
+
   const [taskInputs, setTaskInputs] = createStore<{ [key: string]: any }>({});
+  const [config, setConfig] = createStore<{ [key: string]: any }>({});
 
   return (
     <div class="w-full grow flex flex-col h-full">
@@ -232,8 +241,6 @@ export default function CreateApplicationPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
-                                          // TODO: Add 'example-workflow' workflow.
-                                          // toast.info("Example workflow is not yet implemented.");
                                           toast.promise(addExampleWorkflowAction(app.id), {
                                             loading: "Adding example workflow...",
                                             success: "Example workflow added successfully",
@@ -241,6 +248,7 @@ export default function CreateApplicationPage() {
                                           });
                                         }}
                                         class="gap-2"
+                                        disabled={addExampleWorkflowSubmission.pending}
                                       >
                                         Add Example Workflow
                                       </Button>
@@ -315,7 +323,7 @@ export default function CreateApplicationPage() {
                                       <div class="flex flex-row gap-2 items-start w-full">
                                         <For each={wf.workflow.steps}>
                                           {(step) => (
-                                            <div class="flex flex-col gap-0 items-start border border-neutral-200 dark:border-neutral-800 w-full rounded-sm overflow-clip">
+                                            <div class="flex flex-col gap-0 items-start border border-neutral-200 dark:border-neutral-800 w-max min-w-80 rounded-sm overflow-clip">
                                               <div class="flex flex-row font-bold p-2 bg-neutral-100 dark:bg-neutral-900 w-full items-center justify-between">
                                                 <span class="text-xs">{step.step.name}</span>
                                                 <div class="flex flex-row item-end justify-end gap-1">
@@ -340,6 +348,48 @@ export default function CreateApplicationPage() {
                                                         <TextArea autoResize class="text-xs font-mono" />
                                                       </TextFieldRoot>
                                                       <div class="flex flex-row gap-2 items-center">
+                                                        <For each={Object.keys(default_config)}>
+                                                          {(configuration) => (
+                                                            <ToggleButton
+                                                              size="sm"
+                                                              value={config[task.task.id]?.logging ?? false}
+                                                              onChange={() => {
+                                                                if (!config[task.task.id]) {
+                                                                  setConfig(
+                                                                    update(
+                                                                      config,
+                                                                      task.task.id,
+                                                                      default_config[
+                                                                        configuration as keyof typeof default_config
+                                                                      ],
+                                                                    ),
+                                                                  );
+                                                                  return;
+                                                                }
+
+                                                                setConfig(
+                                                                  update(config, task.task.id, {
+                                                                    ...config[task.task.id],
+                                                                    [configuration]:
+                                                                      !config[task.task.id][
+                                                                        configuration as keyof typeof default_config
+                                                                      ],
+                                                                  }),
+                                                                );
+                                                              }}
+                                                              class="capitalize"
+                                                            >
+                                                              {configuration}{" "}
+                                                              {config[task.task.id]?.[
+                                                                configuration as keyof typeof default_config
+                                                              ]
+                                                                ? "on"
+                                                                : "off"}
+                                                            </ToggleButton>
+                                                          )}
+                                                        </For>
+                                                      </div>
+                                                      <div class="flex flex-row gap-2 items-center">
                                                         <Button
                                                           size="sm"
                                                           onClick={() => {
@@ -347,10 +397,24 @@ export default function CreateApplicationPage() {
                                                             try {
                                                               input = JSON.parse(taskInputs[task.task.id]);
                                                             } catch (e) {
-                                                              toast.error("Invalid input");
+                                                              if (e instanceof SyntaxError)
+                                                                toast.error("Invalid input, please try again.", {
+                                                                  description: e.message,
+                                                                });
+                                                              else toast.error("Invalid input, please try again.");
                                                               return;
                                                             }
-                                                            toast.promise(testTasksAction(task.task.id, input), {
+                                                            if (!input) {
+                                                              toast.error("Invalid input, please try again");
+                                                              return;
+                                                            }
+
+                                                            const mergedInput = {
+                                                              ...input,
+                                                              config: config[task.task.id],
+                                                            };
+
+                                                            toast.promise(testTasksAction(task.task.id, mergedInput), {
                                                               loading: "Testing task...",
                                                               success: "Task tested successfully",
                                                               error: (error) => "Failed to test task: " + error.message,
@@ -372,6 +436,11 @@ export default function CreateApplicationPage() {
                                                           onClick={() => {
                                                             setTaskInputs(
                                                               update(taskInputs, task.task.id, task.task.example ?? ""),
+                                                            );
+                                                            setConfig(
+                                                              update(config, task.task.id, {
+                                                                logging: true,
+                                                              }),
                                                             );
                                                             testTasksSubmission.clear();
                                                           }}
@@ -412,15 +481,26 @@ export default function CreateApplicationPage() {
                                                                 </div>
                                                               }
                                                             >
-                                                              <Skeleton class="h-40 w-full" />
+                                                              <div class="flex flex-row gap-1 items-center justify-center">
+                                                                <Skeleton class="h-6 w-20 rounded-sm" />
+                                                                <Skeleton class="h-6 w-40 rounded-sm" />
+                                                              </div>
+                                                              <Skeleton class="min-h-20 w-full" />
                                                             </Show>
                                                           }
                                                         >
                                                           {(result) => (
-                                                            <div class="">
-                                                              <span class="text-xs">
-                                                                {result().type === "success" ? "Success" : "Error"}
-                                                              </span>
+                                                            <div class="flex flex-col gap-2 items-start justify-center">
+                                                              <div class="flex flex-row gap-1.5 items-center justify-center">
+                                                                <Badge variant="outline">
+                                                                  {result().type === "success"
+                                                                    ? "Task ran successfully"
+                                                                    : "Task failed to run"}
+                                                                </Badge>
+                                                                <Badge variant="outline">
+                                                                  Duration: {result().duration}ms
+                                                                </Badge>
+                                                              </div>
                                                               <pre class="text-xs border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm w-full">
                                                                 {JSON.stringify(
                                                                   result().type === "success"

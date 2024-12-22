@@ -52,13 +52,18 @@ export module TaskGenerator {
 
     // Execute the function
     let fnResult: InferOutput<typeof SuccessSchema>;
+    const start = Date.now();
+    let end = Date.now();
     try {
       fnResult = await schema.fn(parseInput.output);
+      end = Date.now();
     } catch (error) {
       console.error(error);
+      end = Date.now();
       return {
         type: "error:fn",
         error,
+        duration: end - start,
       } as const;
     }
 
@@ -68,12 +73,14 @@ export module TaskGenerator {
       return {
         type: "error:success",
         error: flatten(parsedOutput.issues),
+        duration: end - start,
       } as const;
     }
 
     return {
       type: "success",
       data: parsedOutput.output as InferOutput<typeof SuccessSchema>,
+      duration: end - start,
     } as const;
   };
 }

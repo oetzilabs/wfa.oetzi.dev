@@ -13,9 +13,9 @@ export const HelloWorld = TaskGenerator.create({
     hello: string(),
   }),
   fn: async (input) => {
-    const logging = true && (input.config?.logging ?? true);
+    const logging = true && (input.config?.logging ?? false);
     if (logging) console.log(`Hello, ${input.name}!`);
-    await setTimeout(1000);
+    // await setTimeout(1000);
     return {
       hello: input.name,
     };
