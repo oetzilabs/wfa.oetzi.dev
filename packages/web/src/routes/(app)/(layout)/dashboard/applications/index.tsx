@@ -1,3 +1,4 @@
+import { TaskComponent } from "@/components/task";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,26 +19,17 @@ import {
 import { chooseApplication, removeApplication } from "@/lib/api/applications";
 import { getStatistics } from "@/lib/api/statistics";
 import { getSystemNotifications } from "@/lib/api/system_notifications";
-import { getTasks, testTask } from "@/lib/api/tasks";
+import { getTasks } from "@/lib/api/tasks";
 import { addExampleWorkflow, removeWorkflow } from "@/lib/api/workflows";
 import { getAuthenticatedSession } from "@/lib/auth/util";
-import { update } from "@solid-primitives/signal-builders";
 import { A, createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import { createMutation } from "@tanstack/solid-query";
-import { DEFAULT_CONFIG } from "@wfa/core/src/tasks/config";
 import Loader2 from "lucide-solid/icons/loader-2";
 import MoreHorizontal from "lucide-solid/icons/more-horizontal";
-import Play from "lucide-solid/icons/play";
 import Plus from "lucide-solid/icons/plus";
-import Repeat from "lucide-solid/icons/repeat";
 import { createSignal, For, Show, Suspense } from "solid-js";
 import { createStore } from "solid-js/store";
 import { toast } from "solid-sonner";
-import { Badge } from "../../../../../components/ui/badge";
-import { Skeleton } from "../../../../../components/ui/skeleton";
-import { TextArea } from "../../../../../components/ui/textarea";
-import { TextFieldRoot } from "../../../../../components/ui/textfield";
-import { ToggleButton } from "../../../../../components/ui/toggle";
 
 export const route = {
   preload: async () => {
@@ -60,9 +52,6 @@ export default function CreateApplicationPage() {
   const [confirmRemovalModalOpen, setConfirmRemovalModalOpen] = createSignal(false);
 
   const tasks = createAsync(() => getTasks(), { deferStream: true });
-
-  const testTasksAction = useAction(testTask);
-  const testTasksSubmission = useSubmission(testTask);
 
   const addExampleWorkflowAction = useAction(addExampleWorkflow);
   const addExampleWorkflowSubmission = useSubmission(addExampleWorkflow);
@@ -171,6 +160,19 @@ export default function CreateApplicationPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      toast.promise(addExampleWorkflowAction(app.id), {
+                                        loading: "Adding example workflow...",
+                                        success: "Example workflow added successfully",
+                                        error: (error) => "Failed to add example workflow: " + error.message,
+                                      });
+                                    }}
+                                    class="gap-2"
+                                    disabled={addExampleWorkflowSubmission.pending}
+                                  >
+                                    Add Example Workflow
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem>Edit</DropdownMenuItem>
                                   <AlertDialog
                                     open={confirmRemovalModalOpen()}
@@ -331,226 +333,20 @@ export default function CreateApplicationPage() {
                                                 <Show when={tasks() && tasks()}>
                                                   {(tc) => (
                                                     <For each={step.step.tasks}>
-                                                      {(task) => (
-                                                        <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full text-xs h-max">
-                                                          <span class="text-xs font-semibold">
-                                                            Step: {task.task.name}
-                                                          </span>
-                                                          <div class="flex flex-row gap-2 items-start w-full h-max">
-                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
-                                                              <span>Input:</span>
-                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
-                                                                {
-                                                                  tc().find((t) => t.name === task.task.name)
-                                                                    ?.blueprints.input
-                                                                }
-                                                              </pre>
-                                                            </div>
-                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
-                                                              <span>Output:</span>
-                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
-                                                                {
-                                                                  tc().find((t) => t.name === task.task.name)
-                                                                    ?.blueprints.output
-                                                                }
-                                                              </pre>
-                                                            </div>
-                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
-                                                              <span>Errors:</span>
-                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
-                                                                {
-                                                                  tc().find((t) => t.name === task.task.name)
-                                                                    ?.blueprints.errors
-                                                                }
-                                                              </pre>
-                                                            </div>
-                                                          </div>
-                                                          <span class="text-xs">Input:</span>
-                                                          <TextFieldRoot
-                                                            class=" text-muted-foreground w-full"
-                                                            value={taskInputs[task.task.id] ?? ""}
-                                                            onChange={(value) =>
-                                                              setTaskInputs(update(taskInputs, task.task.id, value))
-                                                            }
-                                                          >
-                                                            <TextArea autoResize class="text-xs font-mono" />
-                                                          </TextFieldRoot>
-                                                          <div class="flex flex-row gap-2 items-center">
-                                                            <For
-                                                              each={
-                                                                Object.keys(
-                                                                  DEFAULT_CONFIG,
-                                                                ) as (keyof typeof DEFAULT_CONFIG)[]
-                                                              }
-                                                            >
-                                                              {(configuration) => (
-                                                                <ToggleButton
-                                                                  size="sm"
-                                                                  value={config[task.task.id]?.logging ?? false}
-                                                                  onChange={() => {
-                                                                    if (!config[task.task.id]) {
-                                                                      setConfig(
-                                                                        update(config, task.task.id, DEFAULT_CONFIG),
-                                                                      );
-                                                                      return;
-                                                                    }
+                                                      {(task) => {
+                                                        const bp = tc().find(
+                                                          (t) => t.name === task.task.name,
+                                                        )?.blueprints;
 
-                                                                    setConfig(
-                                                                      update(config, task.task.id, {
-                                                                        ...config[task.task.id],
-                                                                        [configuration]:
-                                                                          !config[task.task.id][configuration],
-                                                                      }),
-                                                                    );
-                                                                  }}
-                                                                  class="capitalize"
-                                                                >
-                                                                  {configuration}{" "}
-                                                                  {config[task.task.id]?.[configuration] ? "on" : "off"}
-                                                                </ToggleButton>
-                                                              )}
-                                                            </For>
-                                                          </div>
-                                                          <div class="flex flex-row gap-2 items-center">
-                                                            <Button
-                                                              size="sm"
-                                                              onClick={() => {
-                                                                let input = undefined;
-                                                                try {
-                                                                  input = JSON.parse(taskInputs[task.task.id]);
-                                                                } catch (e) {
-                                                                  if (e instanceof SyntaxError)
-                                                                    toast.error("Invalid input, please try again.", {
-                                                                      description: e.message,
-                                                                    });
-                                                                  else toast.error("Invalid input, please try again.");
-                                                                  return;
-                                                                }
-                                                                if (!input) {
-                                                                  toast.error("Invalid input, please try again");
-                                                                  return;
-                                                                }
-
-                                                                const mergedInput = {
-                                                                  ...input,
-                                                                  config: config[task.task.id],
-                                                                };
-
-                                                                toast.promise(
-                                                                  testTasksAction(task.task.id, mergedInput),
-                                                                  {
-                                                                    loading: "Testing task...",
-                                                                    success: "Task tested successfully",
-                                                                    error: (error) =>
-                                                                      "Failed to test task: " + error.message,
-                                                                  },
-                                                                );
-                                                              }}
-                                                              disabled={testTasksSubmission.pending}
-                                                              class="gap-2 w-max"
-                                                            >
-                                                              <Show
-                                                                when={testTasksSubmission.pending}
-                                                                fallback={<Play class="size-4" />}
-                                                              >
-                                                                <Loader2 class="size-4 animate-spin" />
-                                                              </Show>
-                                                              Test
-                                                            </Button>
-                                                            <Button
-                                                              size="sm"
-                                                              onClick={() => {
-                                                                setTaskInputs(
-                                                                  update(
-                                                                    taskInputs,
-                                                                    task.task.id,
-                                                                    task.task.example ?? "",
-                                                                  ),
-                                                                );
-                                                                setConfig(
-                                                                  update(config, task.task.id, {
-                                                                    logging: true,
-                                                                  }),
-                                                                );
-                                                                testTasksSubmission.clear();
-                                                              }}
-                                                              disabled={testTasksSubmission.pending}
-                                                              variant="secondary"
-                                                              class="gap-2 w-max"
-                                                            >
-                                                              <Repeat class="size-4" />
-                                                              Reset
-                                                            </Button>
-                                                          </div>
-                                                          <div class="w-full h-px bg-neutral-200 dark:bg-neutral-800" />
-                                                          <Show
-                                                            when={testTasksSubmission.pending !== undefined}
-                                                            fallback={
-                                                              <div class="w-full flex flex-col items-start justify-center gap-2 border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm bg-neutral-50 dark:bg-neutral-900">
-                                                                <span class="text-xs text-neutral-500">
-                                                                  Please press the "Test" button to run the task.
-                                                                </span>
-                                                              </div>
-                                                            }
-                                                          >
-                                                            <Show
-                                                              when={
-                                                                !testTasksSubmission.pending &&
-                                                                testTasksSubmission.result
-                                                              }
-                                                              fallback={
-                                                                <Show
-                                                                  when={testTasksSubmission.pending}
-                                                                  fallback={
-                                                                    <div class="w-full flex flex-col items-start justify-center gap-2 border border-red-500 dark:border-red-500 p-2 rounded-sm bg-red-50 dark:bg-red-900">
-                                                                      <span class="text-xs text-red-500">
-                                                                        Failed to run task:
-                                                                      </span>
-                                                                      <span class="text-xs p-2 rounded-sm w-full bg-white min-h-40">
-                                                                        {JSON.stringify(
-                                                                          testTasksSubmission.error,
-                                                                          null,
-                                                                          2,
-                                                                        )}
-                                                                      </span>
-                                                                    </div>
-                                                                  }
-                                                                >
-                                                                  <div class="flex flex-row gap-1 items-center justify-center">
-                                                                    <Skeleton class="h-6 w-20 rounded-sm" />
-                                                                    <Skeleton class="h-6 w-40 rounded-sm" />
-                                                                  </div>
-                                                                  <Skeleton class="min-h-20 w-full" />
-                                                                </Show>
-                                                              }
-                                                            >
-                                                              {(result) => (
-                                                                <div class="flex flex-col gap-2 items-start justify-center">
-                                                                  <div class="flex flex-row gap-1.5 items-center justify-center">
-                                                                    <Badge variant="outline">
-                                                                      {result().type === "success"
-                                                                        ? "Task ran successfully"
-                                                                        : "Task failed to run"}
-                                                                    </Badge>
-                                                                    <Badge variant="outline">
-                                                                      Duration: {result().duration}ms
-                                                                    </Badge>
-                                                                  </div>
-                                                                  <pre class="text-xs border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm w-full">
-                                                                    {JSON.stringify(
-                                                                      result().type === "success"
-                                                                        ? result().data
-                                                                        : result().error,
-                                                                      null,
-                                                                      2,
-                                                                    )}
-                                                                  </pre>
-                                                                </div>
-                                                              )}
-                                                            </Show>
-                                                          </Show>
-                                                        </div>
-                                                      )}
+                                                        return (
+                                                          <TaskComponent
+                                                            task={task.task}
+                                                            input={bp?.input ?? ""}
+                                                            output={bp?.output ?? ""}
+                                                            errors={bp?.errors ?? ""}
+                                                          />
+                                                        );
+                                                      }}
                                                     </For>
                                                   )}
                                                 </Show>

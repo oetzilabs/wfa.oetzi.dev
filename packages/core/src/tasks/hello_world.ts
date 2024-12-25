@@ -1,7 +1,7 @@
 import { toJsonSchema } from "@valibot/to-json-schema";
 import { date, strictObject, string } from "valibot";
 import { ConfigSchema } from "./config";
-import { TaskGenerator } from "./generator";
+import { ExportTaskSchema, TaskGenerator } from "./generator";
 import { formatSchema } from "./utils";
 
 const [HelloWorldSchema, hello_world] = TaskGenerator.create({
@@ -39,4 +39,6 @@ export default {
     output: formatSchema(HelloWorldSchema.outputs.success),
     errors: formatSchema(HelloWorldSchema.outputs.error),
   },
-};
+  notes:
+    "This task will fetch exchange rates from a link 'currency-api.pages.dev' and return the exchange rate for the given currencies.",
+} satisfies ExportTaskSchema;

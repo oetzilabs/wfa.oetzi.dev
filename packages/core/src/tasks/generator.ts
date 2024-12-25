@@ -84,3 +84,16 @@ export module TaskGenerator {
     } as const;
   };
 }
+
+export interface ExportTaskSchema {
+  name: string;
+  schema: TaskGenerator.CreateSchema<any, any>;
+  task: this["schema"]["fn"];
+  example: string;
+  blueprints: {
+    input: string;
+    output: string;
+    errors: string;
+  };
+  notes: string;
+}

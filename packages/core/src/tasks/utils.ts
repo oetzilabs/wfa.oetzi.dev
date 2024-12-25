@@ -127,7 +127,7 @@ export const valibot_to_string = <T extends BaseSchema<any, any, any>>(
     }
     case "array": {
       const arraySchema = schema as unknown as ArraySchema<any, Message>;
-      return arraySchema.item ? valibot_to_string(arraySchema.item) : "unknown[]";
+      return arraySchema.item ? `${valibot_to_string(arraySchema.item)}[]` : "unknown[]";
     }
     case "union": {
       const unionSchema = schema as unknown as UnionSchema<any, Message>;

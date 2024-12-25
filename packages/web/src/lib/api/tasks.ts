@@ -20,7 +20,6 @@ export const testTask = action(async (id: string, input: unknown) => {
   const task = task_collection.find((t) => t.name.includes(db_task.name));
 
   if (!task) throw new Error("Task not found");
-  console.log(input);
   const test = await task.task(input);
 
   return json(test);

@@ -89,7 +89,13 @@ export module Applications {
                       with: {
                         tasks: {
                           with: {
-                            task: true,
+                            task: {
+                              with: {
+                                owner: true,
+                                previous_task: true,
+                                used_in: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -119,7 +125,13 @@ export module Applications {
                       with: {
                         tasks: {
                           with: {
-                            task: true,
+                            task: {
+                              with: {
+                                owner: true,
+                                previous_task: true,
+                                used_in: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -149,7 +161,13 @@ export module Applications {
                       with: {
                         tasks: {
                           with: {
-                            task: true,
+                            task: {
+                              with: {
+                                owner: true,
+                                previous_task: true,
+                                used_in: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -182,7 +200,13 @@ export module Applications {
                       with: {
                         tasks: {
                           with: {
-                            task: true,
+                            task: {
+                              with: {
+                                owner: true,
+                                previous_task: true,
+                                used_in: true,
+                              },
+                            },
                           },
                         },
                       },
@@ -264,7 +288,13 @@ export module Applications {
                       with: {
                         tasks: {
                           with: {
-                            task: true,
+                            task: {
+                              with: {
+                                owner: true,
+                                previous_task: true,
+                                used_in: true,
+                              },
+                            },
                           },
                         },
                       },

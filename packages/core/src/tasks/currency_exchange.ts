@@ -16,7 +16,7 @@ import {
   variant,
 } from "valibot";
 import { ConfigSchema } from "./config";
-import { TaskGenerator } from "./generator";
+import { ExportTaskSchema, TaskGenerator } from "./generator";
 import { formatSchema, valibot_to_string } from "./utils";
 
 const currencies = picklist(["eur", "usd", "chf", "gbp"]);
@@ -104,7 +104,7 @@ const [ExchangeSchema, exchange] = TaskGenerator.create({
 
 export default {
   name: "currency_exchange",
-  schema: CurrencyExchangeSchema,
+  schema: ExchangeSchema,
   task: exchange,
   example: JSON.stringify({ date: "latest", from: "eur", to: ["usd", "chf"], value: 100 }, null, 2),
   blueprints: {
@@ -112,4 +112,6 @@ export default {
     output: formatSchema(ExchangeSchema.outputs.success),
     errors: formatSchema(ExchangeSchema.outputs.error),
   },
-};
+  notes:
+    "This task will fetch exchange rates from a link 'currency-api.pages.dev' and return the exchange rate for the given currencies.",
+} satisfies ExportTaskSchema;

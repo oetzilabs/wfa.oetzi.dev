@@ -6,6 +6,7 @@ import { date, InferInput, intersect, nullable, optional, partial, safeParse, st
 import { db } from "../drizzle/sql";
 import { TaskCreateSchema, tasks, TaskUpdateSchema } from "../drizzle/sql/schemas/tasks";
 import * as task_collection from "../tasks/collection";
+import { ExportTaskSchema } from "../tasks/generator";
 import { Validator } from "../validator";
 import { ActivityLogs } from "./activity_logs";
 import { Cfg } from "./configurator";
@@ -285,7 +286,7 @@ export module Tasks {
         return mod.default;
       })
       .filter((mod) => Object.hasOwn(mod, "blueprints"))
-      .map((mod) => ({
+      .map((mod: ExportTaskSchema) => ({
         name: mod.name,
         task: mod.task,
         blueprints: mod.blueprints ?? "no blueprints",
