@@ -1,9 +1,8 @@
-import { setTimeout } from "timers/promises";
 import { strictObject, string } from "valibot";
 import { ConfigSchema } from "./config";
 import { TaskGenerator } from "./generator";
 
-export const HelloWorld = TaskGenerator.create({
+const [HelloWorldSchema, hello_world] = TaskGenerator.create({
   name: "hello_world",
   input: strictObject({
     name: string(),
@@ -22,8 +21,6 @@ export const HelloWorld = TaskGenerator.create({
   },
 });
 
-export const [HelloWorldSchema, hello_world] = HelloWorld;
-
 // const result = await hello_world({
 //   name: "world",
 // });
@@ -35,4 +32,8 @@ export default {
   schema: HelloWorldSchema,
   task: hello_world,
   example: JSON.stringify({ name: "AAAAA" }, null, 2),
+  blueprints: {
+    input: JSON.stringify(HelloWorldSchema.input["~types"]?.output, null, 2),
+    output: JSON.stringify(HelloWorldSchema.outputs, null, 2),
+  },
 };

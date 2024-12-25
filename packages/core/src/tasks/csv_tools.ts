@@ -3,7 +3,7 @@ import { any, array, fallback, literal, optional, picklist, strictObject, string
 import { ConfigSchema } from "./config";
 import { TaskGenerator } from "./generator";
 
-export const Json_To_CSV = TaskGenerator.create({
+export const [JsonToCsvSchema, json_to_csv] = TaskGenerator.create({
   name: "json_to_csv",
   input: strictObject({
     value: array(any()),
@@ -28,7 +28,7 @@ export const Json_To_CSV = TaskGenerator.create({
   },
 });
 
-export const CSV_To_Json = TaskGenerator.create({
+export const [CsvToJsonSchema, csv_to_json] = TaskGenerator.create({
   name: "csv_to_json",
   input: strictObject({
     value: string(),
@@ -52,6 +52,3 @@ export const CSV_To_Json = TaskGenerator.create({
     };
   },
 });
-
-export const [JsonToCsvSchema, json_to_csv] = Json_To_CSV;
-export const [CsvToJsonSchema, csv_to_json] = CSV_To_Json;

@@ -281,7 +281,9 @@ export module Tasks {
       .filter((key) => !key.includes("Schema") && key.toLowerCase() === key)
       .map((function_name) => ({
         // @ts-ignore
-        task: task_collection[function_name],
+        task: task_collection[function_name].task,
+        // @ts-ignore
+        blueprints: task_collection[function_name].blueprints,
         name: function_name,
       }));
   };

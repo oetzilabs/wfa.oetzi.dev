@@ -24,6 +24,7 @@ import { getAuthenticatedSession } from "@/lib/auth/util";
 import { update } from "@solid-primitives/signal-builders";
 import { A, createAsync, RouteDefinition, useAction, useSubmission } from "@solidjs/router";
 import { createMutation } from "@tanstack/solid-query";
+import { DEFAULT_CONFIG } from "@wfa/core/src/tasks/config";
 import Loader2 from "lucide-solid/icons/loader-2";
 import MoreHorizontal from "lucide-solid/icons/more-horizontal";
 import Play from "lucide-solid/icons/play";
@@ -84,12 +85,6 @@ export default function CreateApplicationPage() {
       navigator.clipboard.writeText(text);
     },
   }));
-
-  const default_config = {
-    logging: {
-      logging: true,
-    },
-  };
 
   const [taskInputs, setTaskInputs] = createStore<{ [key: string]: any }>({});
   const [config, setConfig] = createStore<{ [key: string]: any }>({});
@@ -337,6 +332,14 @@ export default function CreateApplicationPage() {
                                                   {(task) => (
                                                     <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full">
                                                       <span class="text-xs font-semibold">Step: {task.task.name}</span>
+                                                      <div class="flex flex-row gap-2 items-center">
+                                                        <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full">
+                                                          {/* {task.task.blueprint.input} */}
+                                                        </pre>
+                                                        <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full">
+                                                          {/* {task.task.blueprint.output} */}
+                                                        </pre>
+                                                      </div>
                                                       <span class="text-xs">Input:</span>
                                                       <TextFieldRoot
                                                         class=" text-muted-foreground w-full"
@@ -348,7 +351,13 @@ export default function CreateApplicationPage() {
                                                         <TextArea autoResize class="text-xs font-mono" />
                                                       </TextFieldRoot>
                                                       <div class="flex flex-row gap-2 items-center">
-                                                        <For each={Object.keys(default_config)}>
+                                                        <For
+                                                          each={
+                                                            Object.keys(
+                                                              DEFAULT_CONFIG,
+                                                            ) as (keyof typeof DEFAULT_CONFIG)[]
+                                                          }
+                                                        >
                                                           {(configuration) => (
                                                             <ToggleButton
                                                               size="sm"
@@ -356,13 +365,7 @@ export default function CreateApplicationPage() {
                                                               onChange={() => {
                                                                 if (!config[task.task.id]) {
                                                                   setConfig(
-                                                                    update(
-                                                                      config,
-                                                                      task.task.id,
-                                                                      default_config[
-                                                                        configuration as keyof typeof default_config
-                                                                      ],
-                                                                    ),
+                                                                    update(config, task.task.id, DEFAULT_CONFIG),
                                                                   );
                                                                   return;
                                                                 }
@@ -371,20 +374,14 @@ export default function CreateApplicationPage() {
                                                                   update(config, task.task.id, {
                                                                     ...config[task.task.id],
                                                                     [configuration]:
-                                                                      !config[task.task.id][
-                                                                        configuration as keyof typeof default_config
-                                                                      ],
+                                                                      !config[task.task.id][configuration],
                                                                   }),
                                                                 );
                                                               }}
                                                               class="capitalize"
                                                             >
                                                               {configuration}{" "}
-                                                              {config[task.task.id]?.[
-                                                                configuration as keyof typeof default_config
-                                                              ]
-                                                                ? "on"
-                                                                : "off"}
+                                                              {config[task.task.id]?.[configuration] ? "on" : "off"}
                                                             </ToggleButton>
                                                           )}
                                                         </For>

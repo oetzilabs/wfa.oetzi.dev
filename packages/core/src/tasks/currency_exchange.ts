@@ -23,7 +23,7 @@ const CurrencyExchangeSchema = strictObject({
   ...ConfigSchema.entries,
 });
 
-export const Exchange = TaskGenerator.create({
+const [ExchangeSchema, exchange] = TaskGenerator.create({
   name: "currency-exchange",
   input: variant("date", [
     strictObject({
@@ -85,8 +85,6 @@ export const Exchange = TaskGenerator.create({
     return result;
   },
 });
-
-export const [ExchangeSchema, exchange] = Exchange;
 
 // const result = await exchange({
 //   date: "latest",
