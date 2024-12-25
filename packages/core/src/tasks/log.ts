@@ -1,8 +1,8 @@
 import { any, GenericSchema, InferInput } from "valibot";
 import { TaskConnector } from "./connector";
-import { Exchange } from "./currency_exchange";
+import CE from "./currency_exchange";
 import { TaskGenerator } from "./generator";
-import { HelloWorld } from "./hello_world";
+import HW from "./hello_world";
 
 const Logger = <I>(passthrough_schema: GenericSchema<I, I>) =>
   TaskGenerator.create({
@@ -24,7 +24,7 @@ const LoggerExample = <I, O>(task: TaskConnector.Task<I, O>) =>
   });
 
 // Run the resulting task
-const [HelloWorldCurrencyExchangerSchema, HelloWorldCurrencyExchangeRunner] = LoggerExample(Exchange);
+const [HelloWorldCurrencyExchangerSchema, HelloWorldCurrencyExchangeRunner] = LoggerExample([CE.schema, CE.task]);
 const finalResult = await HelloWorldCurrencyExchangeRunner({
   date: "latest",
   from: "eur",

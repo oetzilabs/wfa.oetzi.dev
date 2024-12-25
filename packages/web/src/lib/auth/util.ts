@@ -56,8 +56,6 @@ export const getAuthenticatedSession = query(async () => {
   const event = getEvent()!;
   const sessionToken = getCookie(event, Auth.SESSION_COOKIE_NAME) ?? null;
   if (!sessionToken) {
-    console.log("no session token");
-    // throw redirect("/auth/login");
     return userSession;
   }
   const { session } = await Auth.validateSessionToken(sessionToken);

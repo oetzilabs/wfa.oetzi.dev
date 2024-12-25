@@ -4,7 +4,10 @@ import { Tasks } from "@wfa/core/src/entities/tasks";
 export const getTasks = query(async () => {
   "use server";
 
-  const tasks_names = (await Tasks.getCollection()).map((t) => t.name);
+  const tasks_names = (await Tasks.getCollection()).map((t) => ({
+    name: t.name,
+    blueprints: t.blueprints,
+  }));
 
   return json(tasks_names);
 }, "tasks-collection");

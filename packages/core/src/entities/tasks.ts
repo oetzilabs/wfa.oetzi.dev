@@ -277,14 +277,18 @@ export module Tasks {
   };
 
   export const getCollection = async () => {
-    return Object.keys(task_collection)
-      .filter((key) => !key.includes("Schema") && key.toLowerCase() === key)
-      .map((function_name) => ({
+    return Object.entries(task_collection)
+      .filter(([, mod]) => Object.hasOwn(mod, "default"))
+      .filter(([name]) => Boolean(name))
+      .map(([, mod]) => {
         // @ts-ignore
-        task: task_collection[function_name].task,
-        // @ts-ignore
-        blueprints: task_collection[function_name].blueprints,
-        name: function_name,
+        return mod.default;
+      })
+      .filter((mod) => Object.hasOwn(mod, "blueprints"))
+      .map((mod) => ({
+        name: mod.name,
+        task: mod.task,
+        blueprints: mod.blueprints ?? "no blueprints",
       }));
   };
 }

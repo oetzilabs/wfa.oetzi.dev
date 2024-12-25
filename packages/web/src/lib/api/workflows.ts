@@ -39,13 +39,20 @@ export const addExampleWorkflow = action(async (applicationId: string) => {
   if (!exampleStep) throw new Error("Could not create example step");
   const added = await Workflows.addStep(workflow.id, exampleStep.id);
   if (!added) throw new Error("Could not add example step to workflow");
+  const example_task_function_name = Math.random() > 0.5 ? "currency_exchange" : "hello_world";
+  const example_task_example =
+    example_task_function_name === "hello_world"
+      ? { name: "<your name>" }
+      : { date: "latest", from: "eur", to: ["usd", "chf"], value: 100 };
 
-  const exampleTask = (await Tasks.getCollection()).find((t) => t.name === "hello_world");
+  console.log(example_task_function_name, example_task_example);
+
+  const exampleTask = (await Tasks.getCollection()).find((t) => t.name === example_task_function_name);
   if (!exampleTask) throw new Error("Could not find example task in collection");
   const createdTask = await Tasks.create({
-    name: "hello_world",
+    name: example_task_function_name,
     owner_id: ctx.user.id,
-    example: JSON.stringify({ name: "<your name>" }, null, 2),
+    example: JSON.stringify(example_task_example, null, 2),
   });
 
   if (!createdTask) throw new Error("Could not create example task");

@@ -318,7 +318,7 @@ export default function CreateApplicationPage() {
                                       <div class="flex flex-row gap-2 items-start w-full">
                                         <For each={wf.workflow.steps}>
                                           {(step) => (
-                                            <div class="flex flex-col gap-0 items-start border border-neutral-200 dark:border-neutral-800 w-max min-w-80 rounded-sm overflow-clip">
+                                            <div class="flex flex-col gap-0 items-start border border-neutral-200 dark:border-neutral-800 w-full rounded-sm overflow-clip">
                                               <div class="flex flex-row font-bold p-2 bg-neutral-100 dark:bg-neutral-900 w-full items-center justify-between">
                                                 <span class="text-xs">{step.step.name}</span>
                                                 <div class="flex flex-row item-end justify-end gap-1">
@@ -328,192 +328,217 @@ export default function CreateApplicationPage() {
                                                 </div>
                                               </div>
                                               <div class="flex flex-row gap-2 items-start w-full p-2">
-                                                <For each={step.step.tasks}>
-                                                  {(task) => (
-                                                    <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full">
-                                                      <span class="text-xs font-semibold">Step: {task.task.name}</span>
-                                                      <div class="flex flex-row gap-2 items-center">
-                                                        <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full">
-                                                          {/* {task.task.blueprint.input} */}
-                                                        </pre>
-                                                        <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full">
-                                                          {/* {task.task.blueprint.output} */}
-                                                        </pre>
-                                                      </div>
-                                                      <span class="text-xs">Input:</span>
-                                                      <TextFieldRoot
-                                                        class=" text-muted-foreground w-full"
-                                                        value={taskInputs[task.task.id] ?? ""}
-                                                        onChange={(value) =>
-                                                          setTaskInputs(update(taskInputs, task.task.id, value))
-                                                        }
-                                                      >
-                                                        <TextArea autoResize class="text-xs font-mono" />
-                                                      </TextFieldRoot>
-                                                      <div class="flex flex-row gap-2 items-center">
-                                                        <For
-                                                          each={
-                                                            Object.keys(
-                                                              DEFAULT_CONFIG,
-                                                            ) as (keyof typeof DEFAULT_CONFIG)[]
-                                                          }
-                                                        >
-                                                          {(configuration) => (
-                                                            <ToggleButton
+                                                <Show when={tasks() && tasks()}>
+                                                  {(tc) => (
+                                                    <For each={step.step.tasks}>
+                                                      {(task) => (
+                                                        <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full text-xs">
+                                                          <span class="text-xs font-semibold">
+                                                            Step: {task.task.name}
+                                                          </span>
+                                                          <div class="flex flex-row gap-2 items-start w-full h-max">
+                                                            <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
+                                                              {
+                                                                tc().find((t) => t.name === task.task.name)?.blueprints
+                                                                  .input
+                                                              }
+                                                            </pre>
+                                                            <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
+                                                              {
+                                                                tc().find((t) => t.name === task.task.name)?.blueprints
+                                                                  .output
+                                                              }
+                                                            </pre>
+                                                          </div>
+                                                          <span class="text-xs">Input:</span>
+                                                          <TextFieldRoot
+                                                            class=" text-muted-foreground w-full"
+                                                            value={taskInputs[task.task.id] ?? ""}
+                                                            onChange={(value) =>
+                                                              setTaskInputs(update(taskInputs, task.task.id, value))
+                                                            }
+                                                          >
+                                                            <TextArea autoResize class="text-xs font-mono" />
+                                                          </TextFieldRoot>
+                                                          <div class="flex flex-row gap-2 items-center">
+                                                            <For
+                                                              each={
+                                                                Object.keys(
+                                                                  DEFAULT_CONFIG,
+                                                                ) as (keyof typeof DEFAULT_CONFIG)[]
+                                                              }
+                                                            >
+                                                              {(configuration) => (
+                                                                <ToggleButton
+                                                                  size="sm"
+                                                                  value={config[task.task.id]?.logging ?? false}
+                                                                  onChange={() => {
+                                                                    if (!config[task.task.id]) {
+                                                                      setConfig(
+                                                                        update(config, task.task.id, DEFAULT_CONFIG),
+                                                                      );
+                                                                      return;
+                                                                    }
+
+                                                                    setConfig(
+                                                                      update(config, task.task.id, {
+                                                                        ...config[task.task.id],
+                                                                        [configuration]:
+                                                                          !config[task.task.id][configuration],
+                                                                      }),
+                                                                    );
+                                                                  }}
+                                                                  class="capitalize"
+                                                                >
+                                                                  {configuration}{" "}
+                                                                  {config[task.task.id]?.[configuration] ? "on" : "off"}
+                                                                </ToggleButton>
+                                                              )}
+                                                            </For>
+                                                          </div>
+                                                          <div class="flex flex-row gap-2 items-center">
+                                                            <Button
                                                               size="sm"
-                                                              value={config[task.task.id]?.logging ?? false}
-                                                              onChange={() => {
-                                                                if (!config[task.task.id]) {
-                                                                  setConfig(
-                                                                    update(config, task.task.id, DEFAULT_CONFIG),
-                                                                  );
+                                                              onClick={() => {
+                                                                let input = undefined;
+                                                                try {
+                                                                  input = JSON.parse(taskInputs[task.task.id]);
+                                                                } catch (e) {
+                                                                  if (e instanceof SyntaxError)
+                                                                    toast.error("Invalid input, please try again.", {
+                                                                      description: e.message,
+                                                                    });
+                                                                  else toast.error("Invalid input, please try again.");
+                                                                  return;
+                                                                }
+                                                                if (!input) {
+                                                                  toast.error("Invalid input, please try again");
                                                                   return;
                                                                 }
 
-                                                                setConfig(
-                                                                  update(config, task.task.id, {
-                                                                    ...config[task.task.id],
-                                                                    [configuration]:
-                                                                      !config[task.task.id][configuration],
-                                                                  }),
+                                                                const mergedInput = {
+                                                                  ...input,
+                                                                  config: config[task.task.id],
+                                                                };
+
+                                                                toast.promise(
+                                                                  testTasksAction(task.task.id, mergedInput),
+                                                                  {
+                                                                    loading: "Testing task...",
+                                                                    success: "Task tested successfully",
+                                                                    error: (error) =>
+                                                                      "Failed to test task: " + error.message,
+                                                                  },
                                                                 );
                                                               }}
-                                                              class="capitalize"
+                                                              disabled={testTasksSubmission.pending}
+                                                              class="gap-2 w-max"
                                                             >
-                                                              {configuration}{" "}
-                                                              {config[task.task.id]?.[configuration] ? "on" : "off"}
-                                                            </ToggleButton>
-                                                          )}
-                                                        </For>
-                                                      </div>
-                                                      <div class="flex flex-row gap-2 items-center">
-                                                        <Button
-                                                          size="sm"
-                                                          onClick={() => {
-                                                            let input = undefined;
-                                                            try {
-                                                              input = JSON.parse(taskInputs[task.task.id]);
-                                                            } catch (e) {
-                                                              if (e instanceof SyntaxError)
-                                                                toast.error("Invalid input, please try again.", {
-                                                                  description: e.message,
-                                                                });
-                                                              else toast.error("Invalid input, please try again.");
-                                                              return;
-                                                            }
-                                                            if (!input) {
-                                                              toast.error("Invalid input, please try again");
-                                                              return;
-                                                            }
-
-                                                            const mergedInput = {
-                                                              ...input,
-                                                              config: config[task.task.id],
-                                                            };
-
-                                                            toast.promise(testTasksAction(task.task.id, mergedInput), {
-                                                              loading: "Testing task...",
-                                                              success: "Task tested successfully",
-                                                              error: (error) => "Failed to test task: " + error.message,
-                                                            });
-                                                          }}
-                                                          disabled={testTasksSubmission.pending}
-                                                          class="gap-2 w-max"
-                                                        >
-                                                          <Show
-                                                            when={testTasksSubmission.pending}
-                                                            fallback={<Play class="size-4" />}
-                                                          >
-                                                            <Loader2 class="size-4 animate-spin" />
-                                                          </Show>
-                                                          Test
-                                                        </Button>
-                                                        <Button
-                                                          size="sm"
-                                                          onClick={() => {
-                                                            setTaskInputs(
-                                                              update(taskInputs, task.task.id, task.task.example ?? ""),
-                                                            );
-                                                            setConfig(
-                                                              update(config, task.task.id, {
-                                                                logging: true,
-                                                              }),
-                                                            );
-                                                            testTasksSubmission.clear();
-                                                          }}
-                                                          disabled={testTasksSubmission.pending}
-                                                          variant="secondary"
-                                                          class="gap-2 w-max"
-                                                        >
-                                                          <Repeat class="size-4" />
-                                                          Reset
-                                                        </Button>
-                                                      </div>
-                                                      <div class="w-full h-px bg-neutral-200 dark:bg-neutral-800" />
-                                                      <Show
-                                                        when={testTasksSubmission.pending !== undefined}
-                                                        fallback={
-                                                          <div class="w-full flex flex-col items-start justify-center gap-2 border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm bg-neutral-50 dark:bg-neutral-900">
-                                                            <span class="text-xs text-neutral-500">
-                                                              Please press the "Test" button to run the task.
-                                                            </span>
+                                                              <Show
+                                                                when={testTasksSubmission.pending}
+                                                                fallback={<Play class="size-4" />}
+                                                              >
+                                                                <Loader2 class="size-4 animate-spin" />
+                                                              </Show>
+                                                              Test
+                                                            </Button>
+                                                            <Button
+                                                              size="sm"
+                                                              onClick={() => {
+                                                                setTaskInputs(
+                                                                  update(
+                                                                    taskInputs,
+                                                                    task.task.id,
+                                                                    task.task.example ?? "",
+                                                                  ),
+                                                                );
+                                                                setConfig(
+                                                                  update(config, task.task.id, {
+                                                                    logging: true,
+                                                                  }),
+                                                                );
+                                                                testTasksSubmission.clear();
+                                                              }}
+                                                              disabled={testTasksSubmission.pending}
+                                                              variant="secondary"
+                                                              class="gap-2 w-max"
+                                                            >
+                                                              <Repeat class="size-4" />
+                                                              Reset
+                                                            </Button>
                                                           </div>
-                                                        }
-                                                      >
-                                                        <Show
-                                                          when={
-                                                            !testTasksSubmission.pending && testTasksSubmission.result
-                                                          }
-                                                          fallback={
+                                                          <div class="w-full h-px bg-neutral-200 dark:bg-neutral-800" />
+                                                          <Show
+                                                            when={testTasksSubmission.pending !== undefined}
+                                                            fallback={
+                                                              <div class="w-full flex flex-col items-start justify-center gap-2 border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm bg-neutral-50 dark:bg-neutral-900">
+                                                                <span class="text-xs text-neutral-500">
+                                                                  Please press the "Test" button to run the task.
+                                                                </span>
+                                                              </div>
+                                                            }
+                                                          >
                                                             <Show
-                                                              when={testTasksSubmission.pending}
+                                                              when={
+                                                                !testTasksSubmission.pending &&
+                                                                testTasksSubmission.result
+                                                              }
                                                               fallback={
-                                                                <div class="w-full flex flex-col items-start justify-center gap-2 border border-red-500 dark:border-red-500 p-2 rounded-sm bg-red-50 dark:bg-red-900">
-                                                                  <span class="text-xs text-red-500">
-                                                                    Failed to run task:
-                                                                  </span>
-                                                                  <span class="text-xs p-2 rounded-sm w-full bg-white min-h-40">
-                                                                    {JSON.stringify(testTasksSubmission.error, null, 2)}
-                                                                  </span>
-                                                                </div>
+                                                                <Show
+                                                                  when={testTasksSubmission.pending}
+                                                                  fallback={
+                                                                    <div class="w-full flex flex-col items-start justify-center gap-2 border border-red-500 dark:border-red-500 p-2 rounded-sm bg-red-50 dark:bg-red-900">
+                                                                      <span class="text-xs text-red-500">
+                                                                        Failed to run task:
+                                                                      </span>
+                                                                      <span class="text-xs p-2 rounded-sm w-full bg-white min-h-40">
+                                                                        {JSON.stringify(
+                                                                          testTasksSubmission.error,
+                                                                          null,
+                                                                          2,
+                                                                        )}
+                                                                      </span>
+                                                                    </div>
+                                                                  }
+                                                                >
+                                                                  <div class="flex flex-row gap-1 items-center justify-center">
+                                                                    <Skeleton class="h-6 w-20 rounded-sm" />
+                                                                    <Skeleton class="h-6 w-40 rounded-sm" />
+                                                                  </div>
+                                                                  <Skeleton class="min-h-20 w-full" />
+                                                                </Show>
                                                               }
                                                             >
-                                                              <div class="flex flex-row gap-1 items-center justify-center">
-                                                                <Skeleton class="h-6 w-20 rounded-sm" />
-                                                                <Skeleton class="h-6 w-40 rounded-sm" />
-                                                              </div>
-                                                              <Skeleton class="min-h-20 w-full" />
+                                                              {(result) => (
+                                                                <div class="flex flex-col gap-2 items-start justify-center">
+                                                                  <div class="flex flex-row gap-1.5 items-center justify-center">
+                                                                    <Badge variant="outline">
+                                                                      {result().type === "success"
+                                                                        ? "Task ran successfully"
+                                                                        : "Task failed to run"}
+                                                                    </Badge>
+                                                                    <Badge variant="outline">
+                                                                      Duration: {result().duration}ms
+                                                                    </Badge>
+                                                                  </div>
+                                                                  <pre class="text-xs border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm w-full">
+                                                                    {JSON.stringify(
+                                                                      result().type === "success"
+                                                                        ? result().data
+                                                                        : result().error,
+                                                                      null,
+                                                                      2,
+                                                                    )}
+                                                                  </pre>
+                                                                </div>
+                                                              )}
                                                             </Show>
-                                                          }
-                                                        >
-                                                          {(result) => (
-                                                            <div class="flex flex-col gap-2 items-start justify-center">
-                                                              <div class="flex flex-row gap-1.5 items-center justify-center">
-                                                                <Badge variant="outline">
-                                                                  {result().type === "success"
-                                                                    ? "Task ran successfully"
-                                                                    : "Task failed to run"}
-                                                                </Badge>
-                                                                <Badge variant="outline">
-                                                                  Duration: {result().duration}ms
-                                                                </Badge>
-                                                              </div>
-                                                              <pre class="text-xs border border-neutral-200 dark:border-neutral-800 p-2 rounded-sm w-full">
-                                                                {JSON.stringify(
-                                                                  result().type === "success"
-                                                                    ? result().data
-                                                                    : result().error,
-                                                                  null,
-                                                                  2,
-                                                                )}
-                                                              </pre>
-                                                            </div>
-                                                          )}
-                                                        </Show>
-                                                      </Show>
-                                                    </div>
+                                                          </Show>
+                                                        </div>
+                                                      )}
+                                                    </For>
                                                   )}
-                                                </For>
+                                                </Show>
                                               </div>
                                             </div>
                                           )}

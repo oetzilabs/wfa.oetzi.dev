@@ -1,18 +1,23 @@
+import { toJsonSchema } from "@valibot/to-json-schema";
 import {
   array,
   boolean,
   date,
   fallback,
+  isoDate,
   literal,
   number,
   optional,
   picklist,
+  pipe,
   record,
   strictObject,
+  string,
   variant,
 } from "valibot";
 import { ConfigSchema } from "./config";
 import { TaskGenerator } from "./generator";
+import { formatSchema, valibot_to_string } from "./utils";
 
 const currencies = picklist(["eur", "usd", "chf", "gbp"]);
 
@@ -23,11 +28,13 @@ const CurrencyExchangeSchema = strictObject({
   ...ConfigSchema.entries,
 });
 
+const DateSchema = pipe(string(), isoDate());
+
 const [ExchangeSchema, exchange] = TaskGenerator.create({
   name: "currency-exchange",
   input: variant("date", [
     strictObject({
-      date: date(),
+      date: DateSchema,
       ...CurrencyExchangeSchema.entries,
     }),
     strictObject({
@@ -40,8 +47,9 @@ const [ExchangeSchema, exchange] = TaskGenerator.create({
     let date: string = "latest";
     let dateFallback: string = "latest";
     if (input.date !== "latest") {
-      date = `${input.date.getFullYear()}.${input.date.getMonth() + 1}.${input.date.getDate()}`;
-      dateFallback = `${input.date.getFullYear()}-${input.date.getMonth() + 1}-${input.date.getDate()}`;
+      const dd = new Date(Date.parse(input.date));
+      date = `${dd.getFullYear()}.${dd.getMonth() + 1}.${dd.getDate()}`;
+      dateFallback = `${dd.getFullYear()}-${dd.getMonth() + 1}-${dd.getDate()}`;
     }
     if (input.config?.logging) console.log(`Fetching data for ${input.from} to (${input.to.join(", ")}) on ${date}`);
 
@@ -99,4 +107,8 @@ export default {
   schema: CurrencyExchangeSchema,
   task: exchange,
   example: JSON.stringify({ date: "latest", from: "eur", to: ["usd", "chf"], value: 100 }, null, 2),
+  blueprints: {
+    input: formatSchema(ExchangeSchema.input),
+    output: JSON.stringify(ExchangeSchema.outputs, null, 2),
+  },
 };

@@ -1,6 +1,8 @@
-import { strictObject, string } from "valibot";
+import { toJsonSchema } from "@valibot/to-json-schema";
+import { date, strictObject, string } from "valibot";
 import { ConfigSchema } from "./config";
 import { TaskGenerator } from "./generator";
+import { formatSchema } from "./utils";
 
 const [HelloWorldSchema, hello_world] = TaskGenerator.create({
   name: "hello_world",
@@ -28,12 +30,12 @@ const [HelloWorldSchema, hello_world] = TaskGenerator.create({
 // result.type === "success" ? console.log(result.data) : console.log(result.error);
 
 export default {
-  name: "currency_exchange",
+  name: "hello_world",
   schema: HelloWorldSchema,
   task: hello_world,
   example: JSON.stringify({ name: "AAAAA" }, null, 2),
   blueprints: {
-    input: JSON.stringify(HelloWorldSchema.input["~types"]?.output, null, 2),
+    input: formatSchema(HelloWorldSchema.input),
     output: JSON.stringify(HelloWorldSchema.outputs, null, 2),
   },
 };
