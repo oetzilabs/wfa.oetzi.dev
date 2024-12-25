@@ -6,13 +6,13 @@ import type {
   ObjectSchema,
   OptionalSchema,
   PicklistSchema,
+  RecordSchema,
   StrictObjectSchema,
   UnionSchema,
   VariantSchema,
 } from "valibot";
-import { BaseIssue, unwrap } from "valibot";
+import { BaseIssue } from "valibot";
 
-// Keys to remove from schema objects for cleaner output
 const keys_to_remove = [
   "~standard",
   "~run",
@@ -27,11 +27,6 @@ const keys_to_remove = [
   "fallback",
 ];
 
-/**
- * Removes internal valibot keys from an object
- * @param obj - Any object to clean
- * @returns Cleaned object without internal keys
- */
 export const cleanObject = (obj: any): any => {
   if (obj === null || obj === undefined) return obj;
   const cleaned = { ...obj };
@@ -39,57 +34,41 @@ export const cleanObject = (obj: any): any => {
   return cleaned;
 };
 
-/**
- * Converts a valibot schema to a string representation
- * @param schema - Valibot schema to convert
- * @returns String representation of the schema
- */
 export const valibot_to_string = <T extends BaseSchema<any, any, any>>(
   schema: T,
 ): string | Record<string, any> | any[] => {
   if (!schema) return "unknown";
   type Message = BaseIssue<typeof schema>["message"];
-  // Get the schema type from the kind property
   const schemaType = (schema as BaseSchema<any, any, any>).type;
 
   switch (schemaType) {
     case "string":
       return "string";
-
     case "number":
       return "number";
-
     case "boolean":
       return "boolean";
-
     case "date":
       return "date";
-
     case "literal": {
-      // For literals, show the actual value: literal:<value>
       const literalSchema = schema as unknown as LiteralSchema<any, Message>;
       return `literal:${literalSchema.literal}`;
     }
-
     case "nullable": {
-      // Show the wrapped type with "| null"
       const nullableSchema = schema as unknown as NullableSchema<any, Message>;
-      return `${valibot_to_string(nullableSchema.wrapped)} | null`;
-    }
-
-    case "optional": {
-      // Show the wrapped type with "?"
-      const optionalSchema = schema as unknown as OptionalSchema<any, Message>;
-      const unwr = valibot_to_string(optionalSchema.wrapped);
-
       return {
-        type: "optional",
-        value: unwr,
+        type: "nullable",
+        value: valibot_to_string(nullableSchema.wrapped),
       };
     }
-
+    case "optional": {
+      const optionalSchema = schema as unknown as OptionalSchema<any, Message>;
+      return {
+        type: "optional",
+        value: valibot_to_string(optionalSchema.wrapped),
+      };
+    }
     case "object": {
-      // Convert each property of the object schema
       const objSchema = schema as unknown as ObjectSchema<any, Message>;
       const entries = Object.entries(objSchema.entries || {});
       if (entries.length === 0) return "{}";
@@ -100,8 +79,14 @@ export const valibot_to_string = <T extends BaseSchema<any, any, any>>(
       });
       return objResult;
     }
+    case "record": {
+      const recordSchema = schema as unknown as RecordSchema<any, any, Message>;
+      return `Record<${valibot_to_string(recordSchema.key)}, ${valibot_to_string(recordSchema.value)}>`;
+    }
+    case "any": {
+      return "any";
+    }
     case "strict_object": {
-      // Convert each property of the object schema
       const objSchema = schema as unknown as StrictObjectSchema<any, Message>;
       const entries = Object.entries(objSchema.entries || {});
       if (entries.length === 0) return "{}";
@@ -112,59 +97,54 @@ export const valibot_to_string = <T extends BaseSchema<any, any, any>>(
       });
       return objResult;
     }
-
     case "variant": {
-      // For variants, show the possible values
       const variantSchema = schema as unknown as VariantSchema<any, any, Message>;
-      if (variantSchema.options) {
-        const options = variantSchema.options.map((opt: any) => valibot_to_string(opt));
-        return options;
-      }
-    }
+      if (!variantSchema.options) return "unknown";
 
+      const mergedResults: Record<string, Set<string>> = {};
+
+      variantSchema.options.forEach((opt: any) => {
+        const result = valibot_to_string(opt);
+        if (typeof result === "object") {
+          Object.entries(result).forEach(([key, value]) => {
+            if (!mergedResults[key]) mergedResults[key] = new Set();
+            mergedResults[key].add(JSON.stringify(value));
+          });
+        }
+      });
+
+      const finalResult: Record<string, any> = {};
+      Object.entries(mergedResults).forEach(([key, values]) => {
+        const uniqueValues = Array.from(values).map((v) => JSON.parse(v));
+        finalResult[key] = uniqueValues.length === 1 ? uniqueValues[0] : uniqueValues.join(" | ");
+      });
+
+      return finalResult;
+    }
     case "picklist": {
-      // For picklists, show the possible values
       const picklistSchema = schema as unknown as PicklistSchema<any, Message>;
       return picklistSchema.expects.replaceAll('"', "'");
     }
-
     case "array": {
-      // Show item type with [] suffix
       const arraySchema = schema as unknown as ArraySchema<any, Message>;
-      if (arraySchema.item) {
-        const aiof = valibot_to_string(arraySchema.item);
-        return aiof;
-      }
-      return "unknown[]";
+      return arraySchema.item ? valibot_to_string(arraySchema.item) : "unknown[]";
     }
-
     case "union": {
-      // For unions, return array of possible values/types
       const unionSchema = schema as unknown as UnionSchema<any, Message>;
-      if (unionSchema.options) {
-        const options = unionSchema.options.map((opt: any) => {
-          if (opt.kind === "literal") {
-            return (opt as LiteralSchema<any, Message>).literal;
-          }
-          return valibot_to_string(opt);
-        });
-        return options;
-      }
-      console.log(schemaType);
-      return "unknown";
-    }
+      if (!unionSchema.options) return "unknown";
 
+      const options = unionSchema.options.map((opt: any) => {
+        if (opt.kind === "literal") return (opt as LiteralSchema<any, Message>).literal;
+        return valibot_to_string(opt);
+      });
+      return options;
+    }
     default:
       console.log(schemaType);
       return "unknown";
   }
 };
 
-/**
- * Formats a schema into a JSON string
- * @param schema - Schema to format
- * @returns Formatted JSON string
- */
 export const formatSchema = <T extends BaseSchema<any, any, any>>(schema: T): string => {
   const result = valibot_to_string(schema);
   return typeof result === "object" ? JSON.stringify(result, null, 2) : result;

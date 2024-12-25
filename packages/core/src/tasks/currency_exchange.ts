@@ -109,6 +109,7 @@ export default {
   example: JSON.stringify({ date: "latest", from: "eur", to: ["usd", "chf"], value: 100 }, null, 2),
   blueprints: {
     input: formatSchema(ExchangeSchema.input),
-    output: JSON.stringify(ExchangeSchema.outputs, null, 2),
+    output: formatSchema(ExchangeSchema.outputs.success),
+    errors: formatSchema(ExchangeSchema.outputs.error),
   },
 };

@@ -36,6 +36,7 @@ export default {
   example: JSON.stringify({ name: "AAAAA" }, null, 2),
   blueprints: {
     input: formatSchema(HelloWorldSchema.input),
-    output: JSON.stringify(HelloWorldSchema.outputs, null, 2),
+    output: formatSchema(HelloWorldSchema.outputs.success),
+    errors: formatSchema(HelloWorldSchema.outputs.error),
   },
 };

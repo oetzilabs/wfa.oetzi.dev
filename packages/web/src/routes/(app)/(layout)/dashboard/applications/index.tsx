@@ -327,28 +327,43 @@ export default function CreateApplicationPage() {
                                                   </Button>
                                                 </div>
                                               </div>
-                                              <div class="flex flex-row gap-2 items-start w-full p-2">
+                                              <div class="flex flex-row gap-2 items-start w-full p-2 h-max">
                                                 <Show when={tasks() && tasks()}>
                                                   {(tc) => (
                                                     <For each={step.step.tasks}>
                                                       {(task) => (
-                                                        <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full text-xs">
+                                                        <div class="flex flex-col gap-2 items-start border-b last:border-b-0 border-neutral-200 dark:border-neutral-800 w-full text-xs h-max">
                                                           <span class="text-xs font-semibold">
                                                             Step: {task.task.name}
                                                           </span>
                                                           <div class="flex flex-row gap-2 items-start w-full h-max">
-                                                            <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
-                                                              {
-                                                                tc().find((t) => t.name === task.task.name)?.blueprints
-                                                                  .input
-                                                              }
-                                                            </pre>
-                                                            <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
-                                                              {
-                                                                tc().find((t) => t.name === task.task.name)?.blueprints
-                                                                  .output
-                                                              }
-                                                            </pre>
+                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
+                                                              <span>Input:</span>
+                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
+                                                                {
+                                                                  tc().find((t) => t.name === task.task.name)
+                                                                    ?.blueprints.input
+                                                                }
+                                                              </pre>
+                                                            </div>
+                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
+                                                              <span>Output:</span>
+                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
+                                                                {
+                                                                  tc().find((t) => t.name === task.task.name)
+                                                                    ?.blueprints.output
+                                                                }
+                                                              </pre>
+                                                            </div>
+                                                            <div class="flex flex-col gap-2 items-start p-2 w-full h-max">
+                                                              <span>Errors:</span>
+                                                              <pre class="flex flex-col gap-2 items-start border border-neutral-200 dark:border-neutral-800 w-full min-h-10 bg-neutral-50 dark:bg-neutral-900 rounded-sm p-2">
+                                                                {
+                                                                  tc().find((t) => t.name === task.task.name)
+                                                                    ?.blueprints.errors
+                                                                }
+                                                              </pre>
+                                                            </div>
                                                           </div>
                                                           <span class="text-xs">Input:</span>
                                                           <TextFieldRoot
