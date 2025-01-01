@@ -19,7 +19,7 @@
     "@aws-sdk/s3-request-presigner": "3.637.0",
     "@hono/swagger-ui": "^0.4.1",
     "@hono/zod-openapi": "0.18.0",
-    "@openauthjs/openauth": "^0.2.3",
+    "@openauthjs/openauth": "^0.2.6",
     "dayjs": "1.11.13",
     "emailjs": "4.0.3",
     "hono": "4.5.11",
