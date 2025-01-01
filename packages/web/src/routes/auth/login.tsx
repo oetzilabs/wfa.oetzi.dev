@@ -15,27 +15,6 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-// const generateAuthUrl = (provider: string) => {
-//   const url = new URL(`${import.meta.env.VITE_AUTH_URL}/authorize`);
-//   url.searchParams.set("provider", provider);
-//   url.searchParams.set("response_type", "code");
-//   url.searchParams.set("client_id", provider);
-//   url.searchParams.set("redirect_uri", import.meta.env.VITE_LOGIN_REDIRECT_URI);
-//   return url.toString();
-// };
-
-// const logins = {
-//   google: generateAuthUrl("google"),
-// } as const;
-
-// export type Logins = keyof typeof logins;
-
-// const logos: Record<Logins, (props: SVGAttributes) => JSX.Element> = {
-//   google: (props: SVGAttributes) => (
-
-//   ),
-// };
-
 const randomPersonTesimonial = {
   name: "Özgür Isbert",
   title: "Software Engineer",
